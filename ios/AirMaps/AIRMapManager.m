@@ -285,7 +285,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
                               [pin.image drawAtPoint:point];
                           }
                       }
-                      
+
                       for (id <AIRMapSnapshot> overlay in mapView.overlays) {
                           if ([overlay respondsToSelector:@selector(drawToSnapshot:context:)]) {
                                   [overlay drawToSnapshot:snapshot context:UIGraphicsGetCurrentContext()];
@@ -409,6 +409,13 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(AIRMapMarker *)marker
 {
+    // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
+    if ([marker isKindOfClass:[MKUserLocation class]])
+    {
+        ((MKUserLocation *)marker).title = @"";
+        return nil;
+    }
+
     if (![marker isKindOfClass:[AIRMapMarker class]]) {
         return nil;
     }
