@@ -154,6 +154,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
+    
+    NSLog(@"hittest %@", [self.subviews objectAtIndex:0]);
+    // log indicates click on map and unclickable marker is the same, whyyyy????????
+//    if([self.subviews objectAtIndex:0]
 
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView

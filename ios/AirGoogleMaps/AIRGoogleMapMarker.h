@@ -25,6 +25,7 @@
 @property (nonatomic, copy) NSString *imageSrc;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *subtitle;
+@property (nonatomic, copy) NSString *pinImageSrc;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) CGPoint anchor;
 @property (nonatomic, assign) NSInteger zIndex;

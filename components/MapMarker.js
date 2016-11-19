@@ -49,6 +49,11 @@ const propTypes = {
   image: PropTypes.any,
 
   /**
+   * A replacement source for a default annotation.
+   */
+  pinImageSrc: PropTypes.string,
+
+  /**
    * If no custom marker view or custom image is provided, the platform default pin will be used,
    * which can be customized by this color. Ignored if a custom marker is being used.
    */

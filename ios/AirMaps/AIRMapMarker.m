@@ -85,6 +85,31 @@
         }
 
         return _pinView;
+    } else if ([self shouldUseImagePinView]) {
+        NSLog(@"pinImageSrc %@", _pinImageSrc);
+        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
+        MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:self
+                                                                        reuseIdentifier:AnnotationIdentifier];
+        NSString* dotImageSrc;
+        if ([_pinImageSrc isEqualToString:@"blue"]) {
+            dotImageSrc = @"blue-dot.png";
+        } else if ([_pinImageSrc isEqualToString:@"red"]) {
+            dotImageSrc = @"red-dot.png";
+        } else {
+            dotImageSrc = @"pink-dot.png";
+        }
+        UIImage* original = [UIImage imageNamed:dotImageSrc];
+        
+        CGRect rect = CGRectMake(0, 0, 24, 24);
+        UIGraphicsBeginImageContext( rect.size );
+        [original drawInRect:rect];
+        UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+
+        NSData *imageData = UIImagePNGRepresentation(scaledImage);
+        annotationView.image = [UIImage imageWithData:imageData];
+        
+        return annotationView;
     } else {
         // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.
         // if it has a non-null image, it means we want to render a custom marker with the image.
@@ -200,7 +225,12 @@
 
 - (BOOL)shouldUsePinView
 {
-    return self.reactSubviews.count == 0 && !self.imageSrc;
+    return self.reactSubviews.count == 0 && !self.imageSrc && !self.pinImageSrc;
+}
+
+- (BOOL)shouldUseImagePinView
+{
+    return self.reactSubviews.count == 0 && !self.imageSrc && self.pinImageSrc;
 }
 
 - (void)setImageSrc:(NSString *)imageSrc
@@ -229,10 +259,16 @@
                                                                  }];
 }
 
+- (void)setPinImageSrc:(NSString *)pinImageSrc
+{
+    _pinImageSrc = pinImageSrc;
+//    self.pinImageSrc = _pinImageSrc;
+}
+
 - (void)setPinColor:(UIColor *)pinColor
 {
     _pinColor = pinColor;
-    
+
     if ([_pinView respondsToSelector:@selector(setPinTintColor:)]) {
         _pinView.pinTintColor = _pinColor;
     }
