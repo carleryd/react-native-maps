@@ -154,10 +154,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
-    
-    NSLog(@"hittest %@", [self.subviews objectAtIndex:0]);
-    // log indicates click on map and unclickable marker is the same, whyyyy????????
-//    if([self.subviews objectAtIndex:0]
 
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView
@@ -168,7 +164,22 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // - - - - MKOverlayContainerView
     // - - - MKNewAnnotationContainerView
     // - - MKAttributionLabel
-    return ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
+
+    UIView* container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
+//    Using aView we can determine where in the marker we clicked, and possibly trigger some callback to JS?
+//    Dunno how that would work from over here though...
+//    MKAnnotationView *aView = [container.subviews objectAtIndex:0];
+//    NSLog(@"aView center %f %f", aView.center.x, aView.center.y);
+//    NSLog(@"aView width height %f %f", aView.bounds.size.width, aView.bounds.size.width);
+//    for (UIView *aV in container.subviews) {
+//        NSLog(@"aV x y width height %f %f %f %f", aV.bounds.origin.x, aV.bounds.origin.y, aV.bounds.size.width, aV.bounds.size.height);
+//    }
+//    UIView *container = [([self.subviews objectAtIndex:0]).subviews objectAtIndex:2];
+//    NSLog(@"size originX originY %f %f %f", container.frame.size, container.frame.origin.x, container.frame.origin.y);
+//    NSLog(@"centerX centerY %f %f", container.center.x, container.center.y);
+//    NSLog(@"x y width height %f %f %f %f", container.bounds.origin.x, container.bounds.origin.y, container.bounds.size.width, container.bounds.size.height);
+//    NSLog(@"center %f %f", container.center.x, container.center.y);
+    return container;
 }
 
 #pragma mark SMCalloutViewDelegate

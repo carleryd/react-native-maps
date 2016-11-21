@@ -409,7 +409,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(AIRMapMarker *)marker
 {
-    NSLog(@"MAPVIEW MAPVIEW %@", marker);
+//    NSLog(@"MAPVIEW MAPVIEW %@", marker);
     // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
     if ([marker isKindOfClass:[MKUserLocation class]])
     {
@@ -417,16 +417,16 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         return nil;
     }
 //    NSLog(@"IMAGE IMAGE %@ %@", marker.imageSrc, [marker shouldUsePinView]);
-    
+
 //    if([marker shouldUsePinView]) {
 //        NSLog(@"IMAGE IMAGE %@ %@", marker.imageSrc, [marker shouldUsePinView]);
 //        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
 //        MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:marker
 //                                                                        reuseIdentifier:AnnotationIdentifier];
 //        annotationView.image = [UIImage imageNamed:@"pink-dot.png"];
-//        
+//
 //        return annotationView;
-    
+
 //        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
 //        MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:AnnotationIdentifier];
 //        if(annotationView)
@@ -435,7 +435,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //        {
 //            MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:marker
 //                                                                            reuseIdentifier:AnnotationIdentifier];
-//            
+//
 //            annotationView.canShowCallout = YES;
 //            annotationView.image = [UIImage imageNamed:marker.imageSrc];
 //            UIButton* rightButton = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
@@ -448,7 +448,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //        }
 //        return nil;
 //    }
-    
+
     marker.map = mapView;
     return [marker getAnnotationView];
 }

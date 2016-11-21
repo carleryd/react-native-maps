@@ -15,6 +15,7 @@
 #import "RCTUtils.h"
 #import "RCTImageLoader.h"
 
+
 @implementation AIREmptyCalloutBackgroundView
 @end
 
@@ -65,6 +66,31 @@
     }
 }
 
+- (UIImage *)resizeImage:(UIImage*)image newSize:(CGSize)newSize {
+    CGRect newRect = CGRectIntegral(CGRectMake(0, 0, newSize.width, newSize.height));
+    CGImageRef imageRef = image.CGImage;
+
+    UIGraphicsBeginImageContextWithOptions(newSize, NO, 0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+
+    // Set the quality level to use when rescaling
+    CGContextSetInterpolationQuality(context, kCGInterpolationHigh);
+    CGAffineTransform flipVertical = CGAffineTransformMake(1, 0, 0, -1, 0, newSize.height);
+
+    CGContextConcatCTM(context, flipVertical);
+    // Draw into the context; this scales the image
+    CGContextDrawImage(context, newRect, imageRef);
+
+    // Get the resized image from the context and a UIImage
+    CGImageRef newImageRef = CGBitmapContextCreateImage(context);
+    UIImage *newImage = [UIImage imageWithCGImage:newImageRef];
+
+    CGImageRelease(newImageRef);
+    UIGraphicsEndImageContext();
+
+    return newImage;
+}
+
 - (MKAnnotationView *)getAnnotationView
 {
     if ([self shouldUsePinView]) {
@@ -74,6 +100,7 @@
             _pinView.annotation = self;
         }
 
+        _pinView.enabled = false;
         _pinView.draggable = self.draggable;
         _pinView.layer.zPosition = self.zIndex;
 
@@ -86,10 +113,11 @@
 
         return _pinView;
     } else if ([self shouldUseImagePinView]) {
-        NSLog(@"pinImageSrc %@", _pinImageSrc);
         static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
         MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:self
                                                                         reuseIdentifier:AnnotationIdentifier];
+
+        annotationView.enabled = false;
         NSString* dotImageSrc;
         if ([_pinImageSrc isEqualToString:@"blue"]) {
             dotImageSrc = @"blue-dot.png";
@@ -99,16 +127,10 @@
             dotImageSrc = @"pink-dot.png";
         }
         UIImage* original = [UIImage imageNamed:dotImageSrc];
-        
-        CGRect rect = CGRectMake(0, 0, 24, 24);
-        UIGraphicsBeginImageContext( rect.size );
-        [original drawInRect:rect];
-        UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
 
-        NSData *imageData = UIImagePNGRepresentation(scaledImage);
-        annotationView.image = [UIImage imageWithData:imageData];
-        
+        CGSize size = CGSizeMake(8, 8);
+        annotationView.image = [self resizeImage:original newSize:size];
+
         return annotationView;
     } else {
         // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.
