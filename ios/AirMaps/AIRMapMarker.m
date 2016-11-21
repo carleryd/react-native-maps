@@ -119,9 +119,9 @@
 
         annotationView.enabled = false;
         NSString* dotImageSrc;
-        if ([_pinImageSrc isEqualToString:@"blue"]) {
+        if ([_dotColor isEqualToString:@"blue"]) {
             dotImageSrc = @"blue-dot.png";
-        } else if ([_pinImageSrc isEqualToString:@"red"]) {
+        } else if ([_dotColor isEqualToString:@"red"]) {
             dotImageSrc = @"red-dot.png";
         } else {
             dotImageSrc = @"pink-dot.png";
@@ -247,12 +247,12 @@
 
 - (BOOL)shouldUsePinView
 {
-    return self.reactSubviews.count == 0 && !self.imageSrc && !self.pinImageSrc;
+    return self.reactSubviews.count == 0 && !self.imageSrc && !self.dotColor;
 }
 
 - (BOOL)shouldUseImagePinView
 {
-    return self.reactSubviews.count == 0 && !self.imageSrc && self.pinImageSrc;
+    return self.reactSubviews.count == 0 && !self.imageSrc && self.dotColor;
 }
 
 - (void)setImageSrc:(NSString *)imageSrc
@@ -281,10 +281,10 @@
                                                                  }];
 }
 
-- (void)setPinImageSrc:(NSString *)pinImageSrc
+- (void)setDotColor:(NSString *)dotColor
 {
-    _pinImageSrc = pinImageSrc;
-//    self.pinImageSrc = _pinImageSrc;
+    _dotColor = dotColor;
+//    self.dotColor = _dotColor;
 }
 
 - (void)setPinColor:(UIColor *)pinColor
