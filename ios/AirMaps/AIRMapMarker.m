@@ -68,23 +68,21 @@
 }
 
 - (UIImage *)createCircle:(UIColor *)color {
-    static UIImage *blueCircle = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
-        CGContextRef ctx = UIGraphicsGetCurrentContext();
-        CGContextSaveGState(ctx);
+    UIImage *circle = nil;
+    
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(ctx);
         
-        CGRect rect = CGRectMake(0, 0, 12, 12);
-        CGContextSetFillColorWithColor(ctx, color.CGColor);
-        CGContextFillEllipseInRect(ctx, rect);
+    CGRect rect = CGRectMake(0, 0, 12, 12);
+    CGContextSetFillColorWithColor(ctx, color.CGColor);
+    CGContextFillEllipseInRect(ctx, rect);
         
-        CGContextRestoreGState(ctx);
-        blueCircle = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
+    CGContextRestoreGState(ctx);
+    circle = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
         
-    });
-    return blueCircle;
+    return circle;
 }
 
 - (MKAnnotationView *)getAnnotationView
@@ -114,22 +112,17 @@
                                                                         reuseIdentifier:AnnotationIdentifier];
 
         annotationView.enabled = false;
-        NSString* dotImageSrc;
-        UIImage* image;
+        
         if ([_dotColor isEqualToString:@"blue"]) {
             UIColor *color = [UIColor colorWithRed:0.01 green:0.61 blue:0.90 alpha:1.0];
-            image = [self createCircle:color];
+            annotationView.image = [self createCircle:color];
         } else if ([_dotColor isEqualToString:@"red"]) {
             UIColor *color = [UIColor colorWithRed:0.59 green:0.12 blue:0.14 alpha:1.0];
-            image = [self createCircle:color];
+            annotationView.image = [self createCircle:color];
         } else {
             UIColor *color = [UIColor colorWithRed:1.00 green:1.00 blue:1.00 alpha:1.0];
-            image = [self createCircle:color];
+            annotationView.image = [self createCircle:color];
         }
-        UIImage* original = [UIImage imageNamed:dotImageSrc];
-
-        CGSize size = CGSizeMake(8, 8);
-        annotationView.image = image;
 
         return annotationView;
     } else {
