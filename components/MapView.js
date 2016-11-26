@@ -62,6 +62,21 @@ const propTypes = {
   style: View.propTypes.style,
 
   /**
+   * A json object that describes the style of the map. This is transformed to a string
+   * and saved in mayStyleString to be sent to android and ios
+   * https://developers.google.com/maps/documentation/ios-sdk/styling#use_a_string_resource
+   * https://developers.google.com/maps/documentation/android-api/styling
+   */
+  customMapStyle: PropTypes.array,
+
+  /**
+   * A json string that describes the style of the map
+   * https://developers.google.com/maps/documentation/ios-sdk/styling#use_a_string_resource
+   * https://developers.google.com/maps/documentation/android-api/styling
+   */
+  customMapStyleString: PropTypes.string,
+
+  /**
    * If `true` the app will ask for the user's location.
    * Default value is `false`.
    *
@@ -371,15 +386,6 @@ class MapView extends React.Component {
     return { provider: this.props.provider };
   }
 
-  componentDidMount() {
-    const { region, initialRegion } = this.props;
-    if (region && this.state.isReady) {
-      this.map.setNativeProps({ region });
-    } else if (initialRegion && this.state.isReady) {
-      this.map.setNativeProps({ region: initialRegion });
-    }
-  }
-
   componentWillUpdate(nextProps) {
     const a = this.__lastRegion;
     const b = nextProps.region;
@@ -394,6 +400,18 @@ class MapView extends React.Component {
     }
   }
 
+  componentDidMount() {
+    const { isReady } = this.state;
+    if (isReady) {
+      this._updateStyle();
+    }
+  }
+
+  _updateStyle() {
+    const { customMapStyle } = this.props;
+    this.map.setNativeProps({ customMapStyleString: JSON.stringify(customMapStyle) });
+  }
+
   _onMapReady() {
     const { region, initialRegion } = this.props;
     if (region) {
@@ -401,12 +419,15 @@ class MapView extends React.Component {
     } else if (initialRegion) {
       this.map.setNativeProps({ region: initialRegion });
     }
+    this._updateStyle();
     this.setState({ isReady: true });
   }
 
   _onLayout(e) {
     const { region, initialRegion, onLayout } = this.props;
     const { isReady } = this.state;
+    const { layout } = e.nativeEvent;
+    if (!layout.width || !layout.height) return;
     if (region && isReady && !this.__layoutCalled) {
       this.__layoutCalled = true;
       this.map.setNativeProps({ region });
