@@ -177,7 +177,7 @@
 - (void)showCalloutView
 {
     MKAnnotationView *annotationView = [self getAnnotationView];
-
+    
     [self setSelected:YES animated:NO];
 
     id event = @{

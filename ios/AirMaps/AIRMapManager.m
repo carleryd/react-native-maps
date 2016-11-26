@@ -308,21 +308,75 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 #pragma mark Gesture Recognizer Handlers
 
+#define MAX_DISTANCE_PX 10.0f
 - (void)handleMapTap:(UITapGestureRecognizer *)recognizer {
     AIRMap *map = (AIRMap *)recognizer.view;
+
+    CGPoint tapPoint = [recognizer locationInView:map];
+    CLLocationCoordinate2D tapCoordinate = [map convertPoint:tapPoint toCoordinateFromView:map];
+    MKMapPoint mapPoint = MKMapPointForCoordinate(tapCoordinate);
+    CGPoint mapPointAsCGP = CGPointMake(mapPoint.x, mapPoint.y);
+
+    double maxMeters = [self metersFromPixel:MAX_DISTANCE_PX atPoint:tapPoint forMap:map];
+    float nearestDistance = MAXFLOAT;
+    AIRMapPolyline *nearestPolyline = nil;
+
+    for (id<MKOverlay> overlay in map.overlays) {
+        if([overlay isKindOfClass:[AIRMapPolygon class]]){
+            AIRMapPolygon *polygon = (AIRMapPolygon*) overlay;
+            if (polygon.onPress) {
+                CGMutablePathRef mpr = CGPathCreateMutable();
+
+                for(int i = 0; i < polygon.coordinates.count; i++) {
+                    AIRMapCoordinate *c = polygon.coordinates[i];
+                    MKMapPoint mp = MKMapPointForCoordinate(c.coordinate);
+                    if (i == 0) {
+                        CGPathMoveToPoint(mpr, NULL, mp.x, mp.y);
+                    } else {
+                        CGPathAddLineToPoint(mpr, NULL, mp.x, mp.y);
+                    }
+                }
+
+                if (CGPathContainsPoint(mpr, NULL, mapPointAsCGP, FALSE)) {
+                    id event = @{
+                                @"action": @"polygon-press",
+                                };
+                    polygon.onPress(event);
+                }
+
+                CGPathRelease(mpr);
+            }
+        }
+
+        if([overlay isKindOfClass:[AIRMapPolyline class]]){
+            AIRMapPolyline *polyline = (AIRMapPolyline*) overlay;
+            if (polyline.onPress) {
+                float distance = [self distanceOfPoint:MKMapPointForCoordinate(tapCoordinate)
+                                          toPoly:polyline];
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestPolyline = polyline;
+                }
+            }
+        }
+    }
+
+    if (nearestDistance <= maxMeters) {
+        id event = @{
+                   @"action": @"polyline-press",
+                   };
+        nearestPolyline.onPress(event);
+    }
+
     if (!map.onPress) return;
-
-    CGPoint touchPoint = [recognizer locationInView:map];
-    CLLocationCoordinate2D coord = [map convertPoint:touchPoint toCoordinateFromView:map];
-
     map.onPress(@{
             @"coordinate": @{
-                    @"latitude": @(coord.latitude),
-                    @"longitude": @(coord.longitude),
+                    @"latitude": @(tapCoordinate.latitude),
+                    @"longitude": @(tapCoordinate.longitude),
             },
             @"position": @{
-                    @"x": @(touchPoint.x),
-                    @"y": @(touchPoint.y),
+                    @"x": @(tapPoint.x),
+                    @"y": @(tapPoint.y),
             },
     });
 
@@ -409,45 +463,20 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(AIRMapMarker *)marker
 {
-//    NSLog(@"MAPVIEW MAPVIEW %@", marker);
     // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
     if ([marker isKindOfClass:[MKUserLocation class]])
     {
         ((MKUserLocation *)marker).title = @"";
         return nil;
     }
-//    NSLog(@"IMAGE IMAGE %@ %@", marker.imageSrc, [marker shouldUsePinView]);
-
-//    if([marker shouldUsePinView]) {
-//        NSLog(@"IMAGE IMAGE %@ %@", marker.imageSrc, [marker shouldUsePinView]);
-//        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
-//        MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:marker
-//                                                                        reuseIdentifier:AnnotationIdentifier];
-//        annotationView.image = [UIImage imageNamed:@"pink-dot.png"];
-//
-//        return annotationView;
-
-//        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
-//        MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:AnnotationIdentifier];
-//        if(annotationView)
-//            return annotationView;
-//        else
-//        {
-//            MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:marker
-//                                                                            reuseIdentifier:AnnotationIdentifier];
-//
-//            annotationView.canShowCallout = YES;
-//            annotationView.image = [UIImage imageNamed:marker.imageSrc];
-//            UIButton* rightButton = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
-//            [rightButton addTarget:self action:@selector(writeSomething:) forControlEvents:UIControlEventTouchUpInside];
-//            [rightButton setTitle:marker.title forState:UIControlStateNormal];
-//            annotationView.rightCalloutAccessoryView = rightButton;
-//            annotationView.canShowCallout = YES;
-//            annotationView.draggable = YES;
-//            return annotationView;
-//        }
-//        return nil;
-//    }
+    
+    if (marker) {
+        marker.transform = CGAffineTransformMakeScale(0, 0);
+        
+        [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
+            marker.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    }
 
     marker.map = mapView;
     return [marker getAnnotationView];
@@ -643,6 +672,55 @@ static int kDragCenterContext;
                 }
         });
     }
+}
+
+/** Returns the distance of |pt| to |poly| in meters
+ *
+ *
+ */
+- (double)distanceOfPoint:(MKMapPoint)pt toPoly:(AIRMapPolyline *)poly
+{
+    double distance = MAXFLOAT;
+    for (int n = 0; n < poly.coordinates.count - 1; n++) {
+
+        MKMapPoint ptA = MKMapPointForCoordinate(poly.coordinates[n].coordinate);
+        MKMapPoint ptB = MKMapPointForCoordinate(poly.coordinates[n + 1].coordinate);
+
+        double xDelta = ptB.x - ptA.x;
+        double yDelta = ptB.y - ptA.y;
+
+        if (xDelta == 0.0 && yDelta == 0.0) {
+            continue;
+        }
+
+        double u = ((pt.x - ptA.x) * xDelta + (pt.y - ptA.y) * yDelta) / (xDelta * xDelta + yDelta * yDelta);
+        MKMapPoint ptClosest;
+        if (u < 0.0) {
+            ptClosest = ptA;
+        }
+        else if (u > 1.0) {
+            ptClosest = ptB;
+        }
+        else {
+            ptClosest = MKMapPointMake(ptA.x + u * xDelta, ptA.y + u * yDelta);
+        }
+
+        distance = MIN(distance, MKMetersBetweenMapPoints(ptClosest, pt));
+    }
+
+    return distance;
+}
+
+
+/** Converts |px| to meters at location |pt| */
+- (double)metersFromPixel:(NSUInteger)px atPoint:(CGPoint)pt forMap:(AIRMap *)mapView
+{
+    CGPoint ptB = CGPointMake(pt.x + px, pt.y);
+
+    CLLocationCoordinate2D coordA = [mapView convertPoint:pt toCoordinateFromView:mapView];
+    CLLocationCoordinate2D coordB = [mapView convertPoint:ptB toCoordinateFromView:mapView];
+
+    return MKMetersBetweenMapPoints(MKMapPointForCoordinate(coordA), MKMapPointForCoordinate(coordB));
 }
 
 @end
