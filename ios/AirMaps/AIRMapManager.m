@@ -472,10 +472,13 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
     
     if (marker) {
         marker.transform = CGAffineTransformMakeScale(0, 0);
+        marker.enabled = false;
         
         [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
             marker.transform = CGAffineTransformIdentity;
-        } completion:nil];
+        } completion:^(BOOL finished){
+            marker.enabled = true;
+        }];
     }
 
     marker.map = mapView;

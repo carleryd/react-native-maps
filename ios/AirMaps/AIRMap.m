@@ -115,49 +115,27 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void)removeReactSubview:(id<RCTComponent>)subview {
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
-
-    
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        
-        UIView *test = (UIView *)subview;
-        NSLog(@"removing subview");
-        //    MKAnnotationView *marker = (MKAnnotationView *)subview;
-        //    if (marker) {
-        //        marker.enabled = false;
-        //    }
-        
-//        test.transform = CGAffineTransformMakeScale(2, 2);
-        //    test.transform = CGAffineTransformIdentity;
-        [UIView animateWithDuration:0.25 delay:0.0 options:0
-                         animations:^{
-                             test.alpha = 0.0;
-                             //                         test.transform = CGAffineTransformIdentity;
-                         }
-                         completion:^(BOOL finished){
-                             test.alpha = 1.0;
-                             //                         test.transform = CGAffineTransformMakeScale(1, 1);
-                             
-                             
-                             [self removeAnnotation:(id<MKAnnotation>)subview];
-                             [_reactSubviews removeObject:(UIView *)subview];
-                         }
-         ];
-        
-        
+        UIView *view = subview;
+        [UIView animateWithDuration:0.25 animations:^{
+            view.alpha = 0.0;
+            AIRMapMarker *marker = (AIRMapMarker *)view;
+            if(marker && marker.selected) {
+                view.transform = CGAffineTransformMakeScale(2, 2);
+            }
+        } completion:^(BOOL finished) {
+            [self removeAnnotation:(id<MKAnnotation>)view];
+        }];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapCircle class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapUrlTile class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     }
-
+    [_reactSubviews removeObject:(UIView *)subview];
 }
 #pragma clang diagnostic pop
 
