@@ -9,6 +9,7 @@
 
 #import "AIRMap.h"
 
+#import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
 #import "UIView+React.h"
@@ -17,6 +18,7 @@
 #import "AIRMapCircle.h"
 #import <QuartzCore/QuartzCore.h>
 #import "AIRMapUrlTile.h"
+#import "AIRMapUtilities.h"
 
 const CLLocationDegrees AIRMapDefaultSpan = 0.005;
 const NSTimeInterval AIRMapRegionChangeObserveInterval = 0.1;
@@ -154,8 +156,39 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
+    
+    UIView *element = [super hitTest:point withEvent:event];
+    UIView *parent = element.superview;
+    UIView *parent1 = parent.superview;
+    UIView *parent2 = parent1.superview;
 
-    return [super hitTest:point withEvent:event];
+    int duration = 1000;
+    float alpha = 0.7;
+    if ([parent isKindOfClass:[RCTView class]]) {
+        [AIRMapUtilities highlightOnTap:element withDuration:duration toAlpha:alpha];
+        if (parent) {
+            [AIRMapUtilities highlightOnTap:parent withDuration:duration toAlpha:alpha];
+            if (parent1) {
+                [AIRMapUtilities highlightOnTap:parent1 withDuration:duration toAlpha:alpha];
+                if (parent2) {
+                    [AIRMapUtilities highlightOnTap:parent2 withDuration:duration toAlpha:alpha];
+                }
+            }
+        }
+    }
+    
+    // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
+    // - MKMapView
+    // - - UIView
+    // - - - MKBasicMapView
+    // - - - - _MKMapLayerHostingView
+    // - - - MKScrollContainerView
+    // - - - - MKOverlayContainerView
+    // - - - MKNewAnnotationContainerView
+    // - - MKAttributionLabel
+    
+    UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
+    return container;
 }
 
 #pragma mark SMCalloutViewDelegate
