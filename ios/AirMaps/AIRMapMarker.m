@@ -15,6 +15,8 @@
 #import "RCTUtils.h"
 #import "RCTImageLoader.h"
 
+
+
 @implementation AIREmptyCalloutBackgroundView
 @end
 
@@ -65,6 +67,24 @@
     }
 }
 
+- (UIImage *)createCircle:(UIColor *)color {
+    UIImage *circle = nil;
+    
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(ctx);
+        
+    CGRect rect = CGRectMake(0, 0, 12, 12);
+    CGContextSetFillColorWithColor(ctx, color.CGColor);
+    CGContextFillEllipseInRect(ctx, rect);
+        
+    CGContextRestoreGState(ctx);
+    circle = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+        
+    return circle;
+}
+
 - (MKAnnotationView *)getAnnotationView
 {
     if ([self shouldUsePinView]) {
@@ -74,6 +94,7 @@
             _pinView.annotation = self;
         }
 
+        _pinView.enabled = false;
         _pinView.draggable = self.draggable;
         _pinView.layer.zPosition = self.zIndex;
 
@@ -85,6 +106,25 @@
         }
 
         return _pinView;
+    } else if ([self shouldUseImagePinView]) {
+        static NSString* AnnotationIdentifier = @"AnnotationIdentifier";
+        MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:self
+                                                                        reuseIdentifier:AnnotationIdentifier];
+
+        annotationView.enabled = false;
+        
+        if ([_dotColor isEqualToString:@"blue"]) {
+            UIColor *color = [UIColor colorWithRed:0.01 green:0.61 blue:0.90 alpha:1.0];
+            annotationView.image = [self createCircle:color];
+        } else if ([_dotColor isEqualToString:@"red"]) {
+            UIColor *color = [UIColor colorWithRed:0.59 green:0.12 blue:0.14 alpha:1.0];
+            annotationView.image = [self createCircle:color];
+        } else {
+            UIColor *color = [UIColor colorWithRed:1.00 green:1.00 blue:1.00 alpha:1.0];
+            annotationView.image = [self createCircle:color];
+        }
+
+        return annotationView;
     } else {
         // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.
         // if it has a non-null image, it means we want to render a custom marker with the image.
@@ -137,7 +177,7 @@
 - (void)showCalloutView
 {
     MKAnnotationView *annotationView = [self getAnnotationView];
-
+    
     [self setSelected:YES animated:NO];
 
     id event = @{
@@ -200,7 +240,12 @@
 
 - (BOOL)shouldUsePinView
 {
-    return self.reactSubviews.count == 0 && !self.imageSrc;
+    return self.reactSubviews.count == 0 && !self.imageSrc && !self.dotColor;
+}
+
+- (BOOL)shouldUseImagePinView
+{
+    return self.reactSubviews.count == 0 && !self.imageSrc && self.dotColor;
 }
 
 - (void)setImageSrc:(NSString *)imageSrc
@@ -229,10 +274,16 @@
                                                                  }];
 }
 
+- (void)setDotColor:(NSString *)dotColor
+{
+    _dotColor = dotColor;
+//    self.dotColor = _dotColor;
+}
+
 - (void)setPinColor:(UIColor *)pinColor
 {
     _pinColor = pinColor;
-    
+
     if ([_pinView respondsToSelector:@selector(setPinTintColor:)]) {
         _pinView.pinTintColor = _pinColor;
     }

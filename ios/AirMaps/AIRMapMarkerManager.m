@@ -25,6 +25,15 @@ RCT_EXPORT_MODULE()
 - (UIView *)view
 {
     AIRMapMarker *marker = [AIRMapMarker new];
+//    if (marker) {
+//        NSLog(@"marker true");
+//        marker.alpha = 0.0;
+//        [UIView animateWithDuration:2.5 delay:0.0 options:0 animations:^{
+//            marker.alpha = 1.0;
+//        } completion:nil];
+//    } else {
+//        NSLog(@"marker FALSE");
+//    }
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleTap:)];
     // setting this to NO allows the parent MapView to continue receiving marker selection events
     tapGestureRecognizer.cancelsTouchesInView = NO;
@@ -41,6 +50,7 @@ RCT_EXPORT_VIEW_PROPERTY(coordinate, CLLocationCoordinate2D)
 RCT_EXPORT_VIEW_PROPERTY(centerOffset, CGPoint)
 RCT_EXPORT_VIEW_PROPERTY(calloutOffset, CGPoint)
 RCT_REMAP_VIEW_PROPERTY(image, imageSrc, NSString)
+RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
 RCT_EXPORT_VIEW_PROPERTY(pinColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
