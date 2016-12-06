@@ -5,12 +5,27 @@
 @implementation AIRMapUtilities
 
 + (void)highlightOnTap:(UIView *)element withDuration:(NSInteger)duration toAlpha:(double)alpha {
-    element.alpha = alpha;
-    
+    [self setAndResetAlpha:element fromAlpha:alpha toAlpha:1.0 afterDuration:duration];
+    UIView *parent = element.superview;
+    UIView *parent1 = parent.superview;
+    UIView *parent2 = parent1.superview;
+    if (parent) {
+        [self setAndResetAlpha:parent fromAlpha:alpha toAlpha:1.0 afterDuration:duration];
+        if (parent1) {
+            [self setAndResetAlpha:parent1 fromAlpha:alpha toAlpha:1.0 afterDuration:duration];
+            if (parent2) {
+                [self setAndResetAlpha:parent2 fromAlpha:alpha toAlpha:1.0 afterDuration:duration];
+            }
+        }
+    }
+}
+
++ (void)setAndResetAlpha:(UIView *)element fromAlpha:(double)a1 toAlpha:(double)a2 afterDuration:(NSInteger)duration {
+    element.alpha = a1;
     dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC * duration);
     dispatch_after(delay, dispatch_get_main_queue(), ^(void){
         // do work in the UI thread here
-        element.alpha = 1.0;
+        element.alpha = a2;
     });
 }
 

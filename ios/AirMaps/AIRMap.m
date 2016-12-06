@@ -117,49 +117,27 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void)removeReactSubview:(id<RCTComponent>)subview {
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
-
-    
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        
-        UIView *test = (UIView *)subview;
-        NSLog(@"removing subview");
-        //    MKAnnotationView *marker = (MKAnnotationView *)subview;
-        //    if (marker) {
-        //        marker.enabled = false;
-        //    }
-        
-//        test.transform = CGAffineTransformMakeScale(2, 2);
-        //    test.transform = CGAffineTransformIdentity;
-        [UIView animateWithDuration:0.25 delay:0.0 options:0
-                         animations:^{
-                             test.alpha = 0.0;
-                             //                         test.transform = CGAffineTransformIdentity;
-                         }
-                         completion:^(BOOL finished){
-                             test.alpha = 1.0;
-                             //                         test.transform = CGAffineTransformMakeScale(1, 1);
-                             
-                             
-                             [self removeAnnotation:(id<MKAnnotation>)subview];
-                             [_reactSubviews removeObject:(UIView *)subview];
-                         }
-         ];
-        
-        
+        UIView *view = subview;
+        [UIView animateWithDuration:0.25 animations:^{
+            view.alpha = 0.0;
+            AIRMapMarker *marker = (AIRMapMarker *)view;
+            if(marker && marker.selected) {
+                view.transform = CGAffineTransformMakeScale(2, 2);
+            }
+        } completion:^(BOOL finished) {
+            [self removeAnnotation:(id<MKAnnotation>)view];
+        }];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapCircle class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     } else if ([subview isKindOfClass:[AIRMapUrlTile class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
-        [_reactSubviews removeObject:(UIView *)subview];
     }
-
+    [_reactSubviews removeObject:(UIView *)subview];
 }
 #pragma clang diagnostic pop
 
@@ -181,6 +159,16 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *) event {
+    
+    NSLog(@"mapkit began");
+}
+
+- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *) event {
+    
+    NSLog(@"mapkit ended");
+}
+
 // Allow touches to be sent to our calloutview.
 // See this for some discussion of why we need to override this: https://github.com/nfarina/calloutview/pull/9
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
@@ -190,22 +178,11 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     
     UIView *element = [super hitTest:point withEvent:event];
     UIView *parent = element.superview;
-    UIView *parent1 = parent.superview;
-    UIView *parent2 = parent1.superview;
 
     int duration = 1000;
     float alpha = 0.7;
     if ([parent isKindOfClass:[RCTView class]]) {
         [AIRMapUtilities highlightOnTap:element withDuration:duration toAlpha:alpha];
-        if (parent) {
-            [AIRMapUtilities highlightOnTap:parent withDuration:duration toAlpha:alpha];
-            if (parent1) {
-                [AIRMapUtilities highlightOnTap:parent1 withDuration:duration toAlpha:alpha];
-                if (parent2) {
-                    [AIRMapUtilities highlightOnTap:parent2 withDuration:duration toAlpha:alpha];
-                }
-            }
-        }
     }
     
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
@@ -217,8 +194,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // - - - - MKOverlayContainerView
     // - - - MKNewAnnotationContainerView
     // - - MKAttributionLabel
-
-    UIView* container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
+    
+    UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
     return container;
 }
 
