@@ -8,6 +8,7 @@
  */
 
 #import "AIRMapMarker.h"
+#import "AIRMapUtilities.h"
 
 #import "RCTEventDispatcher.h"
 #import "UIView+React.h"
@@ -65,6 +66,16 @@
     } else {
         [super removeReactSubview:(UIView *)subview];
     }
+}
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if (CGRectContainsPoint(self.bounds, point)) {
+        AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+        if ([utilities currentSelectedMarker] == self && [utilities touchBeginMarker] && [utilities touchEndMarker]) {
+            [utilities setCurrentSelectedMarker:self];
+        }
+    }
+    return [super hitTest:point withEvent:event];
 }
 
 - (UIImage *)createCircle:(UIColor *)color {

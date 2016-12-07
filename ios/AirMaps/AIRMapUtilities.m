@@ -1,8 +1,26 @@
 #import "UIView+React.h"
 #import <Foundation/Foundation.h>
 #import "AIRMapUtilities.h"
+#import "AIRMapMarker.h"
 
 @implementation AIRMapUtilities
+
+//+ (void)setTouchBeginOnMarker:(AIRMapMarker *)marker withTouchBegin:(BOOL)touchBegin withTouchEnd:(BOOL)touchEnd {
+//    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+//    utilities.pressedMarker = marker;
+//    utilities.touchBeginMarker = touchBegin;
+//    utilities.touchEndMarker = touchEnd;
+//}
+
++ (instancetype)sharedInstance {
+    static AIRMapUtilities *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[self alloc] init];
+        // Do any other initialisation stuff here
+    });
+    return sharedInstance;
+}
 
 + (void)highlightOnTap:(UIView *)element withDuration:(NSInteger)duration toAlpha:(double)alpha {
     [self setAndResetAlpha:element fromAlpha:alpha toAlpha:1.0 afterDuration:duration];
