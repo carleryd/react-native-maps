@@ -71,9 +71,7 @@
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     if (CGRectContainsPoint(self.bounds, point)) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-        if ([utilities currentSelectedMarker] == self && [utilities touchBeginMarker] && [utilities touchEndMarker]) {
-            [utilities setCurrentSelectedMarker:self];
-        }
+        [utilities setCurrentSelectedMarker:self];
     }
     return [super hitTest:point withEvent:event];
 }

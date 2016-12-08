@@ -162,72 +162,39 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
-    [utilities setTouchBeginMarker:[utilities currentSelectedMarker]];
+    [utilities setTouchBeganMarker:[utilities currentSelectedMarker]];
+    utilities.touchBeganMarker.alpha = 0.7;
+}
+
+- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    
+    utilities.touchBeganMarker.alpha = 1.0;
+    utilities.touchEndedMarker.alpha = 1.0;
+    [utilities setTouchBeganMarker:nil];
+    [utilities setTouchEndedMarker:nil];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
-    [utilities setTouchEndMarker:[utilities currentSelectedMarker]];
+    [utilities setTouchEndedMarker:[utilities currentSelectedMarker]];
+    utilities.TouchEndedMarker.alpha = 1.0;
+    utilities.touchBeganMarker.alpha = 1.0;
     
-    if ([[utilities touchBeginMarker] isEqual:[utilities touchEndMarker]]) {
-        [self selectAnnotation:[utilities touchBeginMarker] animated:FALSE];
+    if ([[utilities touchBeganMarker] isEqual:[utilities TouchEndedMarker]]) {
+        [self selectAnnotation:[utilities touchBeganMarker] animated:FALSE];
     }
 }
 
 // Allow touches to be sent to our calloutview.
 // See this for some discussion of why we need to override this: https://github.com/nfarina/calloutview/pull/9
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-//    NSLog(@"asdf POINT x %@", point.x);
-//    NSLog(@"asdf POINT y %@", point.y);
-//    NSLog(@"asdf EVENT %@", event);
-
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
     
+    // We need to trigger hitTest on AIRMapMarker so we can highlight and select it on click
     RCTView *view = (UIView *)[super hitTest:point withEvent:event];
-    
-//    UIView *element = [super hitTest:point withEvent:event];
-//    UIView *parent = element.superview;
-    
-//    for (id<MKAnnotation> currentAnnotation in self.annotations) {
-//        AIRMapMarker *marker = currentAnnotation;
-//        if([marker isKindOfClass:[AIRMapMarker class]]) {
-////            NSLog(@"AIRMap marker %@", marker);
-////            NSLog(@"asdf BOUNDS %@", marker.bounds);
-////            if (CGRectContainsPoint(marker.bounds, point)) {
-////                NSLog(@"asdf CONTAINS %@", marker);
-////            }
-//            
-//            RCTView *view = (UIView *)[super hitTest:point withEvent:event].reactSuperview;
-//            UIView *mView = (UIView *)[marker getAnnotationView];
-//            UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
-//            
-////            NSLog(@"MAAAP marker %@", mView);
-////            NSLog(@"MAAAP hit %@", view);
-////            NSLog(@"MAAAP superview %@", view.superview);
-////            NSLog(@"MAAAP superclass %@", view.superclass);
-////            NSLog(@"MAAAP superclass %@", view.);
-////            NSLog(@"MAAAP container %@", container);
-//            
-////            if ([mView isEqual:view]) {
-////                NSLog(@"MAAAP EQUAAAAAL");
-////            }
-//            
-////            [self selectAnnotation:marker animated:FALSE];
-//        }
-//    }
-    
-//    if ([parent isKindOfClass:[RCTView class]]) {
-////        [AIRMapUtilities highlightOnTap:element withDuration:1000 toAlpha:0.7];
-//        AIRMapMarker *marker = parent;
-////        marker.selected = true;
-//        UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
-//        if (container) {
-////            NSLog(@"UIView %@", container);
-////            [container setSelected:YES animated:NO];
-//        }
-//    }
     
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView
@@ -238,7 +205,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // - - - - MKOverlayContainerView
     // - - - MKNewAnnotationContainerView
     // - - MKAttributionLabel
-    
     UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
     return container;
 }

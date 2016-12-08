@@ -5,13 +5,6 @@
 
 @implementation AIRMapUtilities
 
-//+ (void)setTouchBeginOnMarker:(AIRMapMarker *)marker withTouchBegin:(BOOL)touchBegin withTouchEnd:(BOOL)touchEnd {
-//    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-//    utilities.pressedMarker = marker;
-//    utilities.touchBeginMarker = touchBegin;
-//    utilities.touchEndMarker = touchEnd;
-//}
-
 + (instancetype)sharedInstance {
     static AIRMapUtilities *sharedInstance = nil;
     static dispatch_once_t onceToken;
