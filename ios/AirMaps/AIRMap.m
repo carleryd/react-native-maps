@@ -169,10 +169,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
+    utilities.currentSelectedMarker.alpha = 1.0;
     utilities.touchBeganMarker.alpha = 1.0;
     utilities.touchEndedMarker.alpha = 1.0;
-    [utilities setTouchBeganMarker:nil];
-    [utilities setTouchEndedMarker:nil];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
