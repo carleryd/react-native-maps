@@ -179,10 +179,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
     [utilities setTouchEndedMarker:[utilities currentSelectedMarker]];
-    utilities.TouchEndedMarker.alpha = 1.0;
+    utilities.touchEndedMarker.alpha = 1.0;
     utilities.touchBeganMarker.alpha = 1.0;
     
-    if ([[utilities touchBeganMarker] isEqual:[utilities TouchEndedMarker]]) {
+    if ([[utilities touchBeganMarker] isEqual:[utilities touchEndedMarker]]) {
         [self selectAnnotation:[utilities touchBeganMarker] animated:FALSE];
     }
 }
