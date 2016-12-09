@@ -169,20 +169,24 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
-    utilities.currentSelectedMarker.alpha = 1.0;
     utilities.touchBeganMarker.alpha = 1.0;
     utilities.touchEndedMarker.alpha = 1.0;
+    [utilities setTouchBeganMarker:nil];
+    [utilities setTouchEndedMarker:nil];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
     [utilities setTouchEndedMarker:[utilities currentSelectedMarker]];
-    utilities.touchEndedMarker.alpha = 1.0;
-    utilities.touchBeganMarker.alpha = 1.0;
     
     if ([[utilities touchBeganMarker] isEqual:[utilities touchEndedMarker]]) {
         [self selectAnnotation:[utilities touchBeganMarker] animated:FALSE];
+        utilities.touchEndedMarker.alpha = 0.7;
+        utilities.touchBeganMarker.alpha = 0.7;
+    } else {
+        utilities.touchEndedMarker.alpha = 1.0;
+        utilities.touchBeganMarker.alpha = 1.0;
     }
 }
 
