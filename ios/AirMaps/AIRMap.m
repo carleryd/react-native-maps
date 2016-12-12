@@ -9,6 +9,7 @@
 
 #import "AIRMap.h"
 
+#import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
 #import "UIView+React.h"
@@ -17,6 +18,7 @@
 #import "AIRMapCircle.h"
 #import <QuartzCore/QuartzCore.h>
 #import "AIRMapUrlTile.h"
+#import "AIRMapUtilities.h"
 
 const CLLocationDegrees AIRMapDefaultSpan = 0.005;
 const NSTimeInterval AIRMapRegionChangeObserveInterval = 0.1;
@@ -116,7 +118,16 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        [self removeAnnotation:(id<MKAnnotation>)subview];
+        UIView *view = subview;
+        [UIView animateWithDuration:0.25 animations:^{
+            view.alpha = 0.0;
+            AIRMapMarker *marker = (AIRMapMarker *)view;
+            if(marker && marker.selected) {
+                view.transform = CGAffineTransformMakeScale(2, 2);
+            }
+        } completion:^(BOOL finished) {
+            [self removeAnnotation:(id<MKAnnotation>)view];
+        }];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
@@ -148,14 +159,65 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    utilities.prevPressedMarker.alpha = 0.7;
+    
+    // Hack to fix bug with marker being left selected even though we no longer press the map.
+    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 0.5);
+    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
+        // do work in the UI thread here
+        if ([utilities prevPressedMarker] != nil) {
+            [[utilities prevPressedMarker] setAlpha:1.0];
+            [utilities setPrevPressedMarker:nil];
+        }
+    });
+}
+
+- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    utilities.prevPressedMarker.alpha = 1.0;
+    [utilities setPrevPressedMarker:nil];
+}
+
+- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapMarker *marker = [utilities prevPressedMarker];
+    
+    if (marker != nil) {
+        id markerPressEvent = @{
+                                @"action": @"marker-press",
+                                @"id": marker.identifier ?: @"unknown",
+                                @"coordinate": @{
+                                        @"latitude": @(marker.coordinate.latitude),
+                                        @"longitude": @(marker.coordinate.longitude)
+                                        }
+                                };
+        
+        if (marker.onPress) marker.onPress(markerPressEvent);
+    }
+}
+
 // Allow touches to be sent to our calloutview.
 // See this for some discussion of why we need to override this: https://github.com/nfarina/calloutview/pull/9
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
-
-    return [super hitTest:point withEvent:event];
+    
+    // We need to trigger hitTest on AIRMapMarker so we can highlight and select it on click
+    RCTView *view = (UIView *)[super hitTest:point withEvent:event];
+    
+    // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
+    // - MKMapView
+    // - - UIView
+    // - - - MKBasicMapView
+    // - - - - _MKMapLayerHostingView
+    // - - - MKScrollContainerView
+    // - - - - MKOverlayContainerView
+    // - - - MKNewAnnotationContainerView
+    // - - MKAttributionLabel
+    UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
+    return container;
 }
 
 #pragma mark SMCalloutViewDelegate
