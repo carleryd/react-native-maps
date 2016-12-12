@@ -5,14 +5,10 @@
 
 @interface AIRMapUtilities : NSObject {
     NSString *someProperty;
-    AIRMapMarker *currentSelectedMarker;
-    AIRMapMarker *touchBeganMarker;
-    AIRMapMarker *touchEndedMarker;
+    AIRMapMarker *prevPressedMarker;
 }
 @property (nonatomic, retain) NSString *someProperty;
-@property (nonatomic, retain) AIRMapMarker *currentSelectedMarker;
-@property (nonatomic, retain) AIRMapMarker *touchBeganMarker;
-@property (nonatomic, retain) AIRMapMarker *touchEndedMarker;
+@property (nonatomic, retain) AIRMapMarker *prevPressedMarker;
 
 + (instancetype)sharedInstance;
 + (void)highlightOnTap:(UIView *)element withDuration:(NSInteger)duration toAlpha:(double)alpha;

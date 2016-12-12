@@ -161,34 +161,32 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    
-    [utilities setTouchBeganMarker:[utilities currentSelectedMarker]];
-    utilities.touchBeganMarker.alpha = 0.7;
+    utilities.prevPressedMarker.alpha = 0.7;
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    
-    utilities.touchBeganMarker.alpha = 1.0;
-    utilities.touchEndedMarker.alpha = 1.0;
-    utilities.currentSelectedMarker.alpha = 1.0;
-    [utilities setTouchBeganMarker:nil];
-    [utilities setTouchEndedMarker:nil];
-    [utilities setCurrentSelectedMarker:nil];
+    utilities.prevPressedMarker.alpha = 1.0;
+    [utilities setPrevPressedMarker:nil];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapMarker *marker = [utilities prevPressedMarker];
     
-    [utilities setTouchEndedMarker:[utilities currentSelectedMarker]];
-    
-    if ([[utilities touchBeganMarker] isEqual:[utilities touchEndedMarker]]) {
-        [self selectAnnotation:[utilities touchBeganMarker] animated:FALSE];
-        utilities.touchEndedMarker.alpha = 0.7;
-        utilities.touchBeganMarker.alpha = 0.7;
-    } else {
-        utilities.touchEndedMarker.alpha = 1.0;
-        utilities.touchBeganMarker.alpha = 1.0;
+    if (marker != nil) {
+        marker.alpha = 1.0;
+        
+        id markerPressEvent = @{
+                                @"action": @"marker-press",
+                                @"id": marker.identifier ?: @"unknown",
+                                @"coordinate": @{
+                                        @"latitude": @(marker.coordinate.latitude),
+                                        @"longitude": @(marker.coordinate.longitude)
+                                        }
+                                };
+        
+        if (marker.onPress) marker.onPress(markerPressEvent);
     }
 }
 
