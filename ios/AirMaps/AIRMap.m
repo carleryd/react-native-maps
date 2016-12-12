@@ -162,6 +162,16 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     utilities.prevPressedMarker.alpha = 0.7;
+    
+    // Hack to fix bug with marker being left selected even though we no longer press the map.
+    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 0.5);
+    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
+        // do work in the UI thread here
+        if ([utilities prevPressedMarker] != nil) {
+            [[utilities prevPressedMarker] setAlpha:1.0];
+            [utilities setPrevPressedMarker:nil];
+        }
+    });
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -175,8 +185,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     AIRMapMarker *marker = [utilities prevPressedMarker];
     
     if (marker != nil) {
-        marker.alpha = 1.0;
-        
         id markerPressEvent = @{
                                 @"action": @"marker-press",
                                 @"id": marker.identifier ?: @"unknown",
