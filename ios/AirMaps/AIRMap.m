@@ -164,7 +164,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     utilities.prevPressedMarker.alpha = 0.7;
     
     // Hack to fix bug with marker being left selected even though we no longer press the map.
-    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 0.5);
+    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 1.0);
     dispatch_after(delay, dispatch_get_main_queue(), ^(void){
         // do work in the UI thread here
         if ([utilities prevPressedMarker] != nil) {
@@ -195,6 +195,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
         
         if (marker.onPress) marker.onPress(markerPressEvent);
+        [utilities setPrevPressedMarker:nil];
     }
 }
 
