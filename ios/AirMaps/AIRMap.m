@@ -162,7 +162,12 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     utilities.prevPressedMarker.alpha = 0.7;
-    
+    utilities.hasMovedRegion = NO;
+
+    UITouch *touch = [[event allTouches] anyObject];
+    [utilities setTouchStartPos:[touch locationInView:touch.view]];
+    CGPoint point = [touch locationInView:touch.view];
+
     // Hack to fix bug with marker being left selected even though we no longer press the map.
     dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 1.0);
     dispatch_after(delay, dispatch_get_main_queue(), ^(void){
@@ -176,15 +181,24 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 1.0;
-    [utilities setPrevPressedMarker:nil];
+
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint touchLocation = [touch locationInView:self];
+    CGPoint startTouch = [utilities touchStartPos];
+    double diffX = fabs(startTouch.x - touchLocation.x);
+    double diffY = fabs(startTouch.y - touchLocation.y);
+
+    if (diffX > 10 || diffY > 10) {
+        utilities.prevPressedMarker.alpha = 1.0;
+        [utilities setPrevPressedMarker:nil];
+    }
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapMarker *marker = [utilities prevPressedMarker];
-    
-    if (marker != nil) {
+
+    if ([utilities hasMovedRegion] == NO) {
         id markerPressEvent = @{
                                 @"action": @"marker-press",
                                 @"id": marker.identifier ?: @"unknown",
@@ -193,7 +207,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                         @"longitude": @(marker.coordinate.longitude)
                                         }
                                 };
-        
+
         if (marker.onPress) marker.onPress(markerPressEvent);
         [utilities setPrevPressedMarker:nil];
     }
@@ -204,10 +218,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
-    
+
     // We need to trigger hitTest on AIRMapMarker so we can highlight and select it on click
     RCTView *view = (UIView *)[super hitTest:point withEvent:event];
-    
+
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView
     // - - UIView
