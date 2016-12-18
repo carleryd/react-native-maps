@@ -188,7 +188,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     double diffX = fabs(startTouch.x - touchLocation.x);
     double diffY = fabs(startTouch.y - touchLocation.y);
 
-    if (diffX > 10 || diffY > 10) {
+    double threshold = 30;
+    if (diffX > threshold || diffY > threshold) {
         utilities.prevPressedMarker.alpha = 1.0;
         [utilities setPrevPressedMarker:nil];
     }
