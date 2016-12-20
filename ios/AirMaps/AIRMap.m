@@ -176,8 +176,17 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 1.0;
-    [utilities setPrevPressedMarker:nil];
+
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint touchLocation = [touch locationInView:self];
+    CGPoint startTouch = [utilities touchStartPos];
+    double diffX = fabs(startTouch.x - touchLocation.x);
+    double diffY = fabs(startTouch.y - touchLocation.y);
+
+    if (diffX > 10 || diffY > 10) {
+        utilities.prevPressedMarker.alpha = 1.0;
+        [utilities setPrevPressedMarker:nil];
+    }
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {

@@ -579,6 +579,19 @@ static int kDragCenterContext;
 
 - (void)mapView:(AIRMap *)mapView regionWillChangeAnimated:(__unused BOOL)animated
 {
+    // Used for marker press logic.
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    [utilities setHasMovedRegion:YES];
+    
+    for (id <MKAnnotation> annotation in mapView.annotations) {
+        MKAnnotationView *anView = [mapView viewForAnnotation:annotation];
+        if ([anView isKindOfClass:[AIRMapMarker class]]) {
+            [UIView animateWithDuration:0.50 animations:^{
+                anView.alpha = 0.3;
+            }];
+        }
+    }
+
     [self _regionChanged:mapView];
 
     mapView.regionChangeObserveTimer = [NSTimer timerWithTimeInterval:AIRMapRegionChangeObserveInterval
@@ -592,6 +605,15 @@ static int kDragCenterContext;
 
 - (void)mapView:(AIRMap *)mapView regionDidChangeAnimated:(__unused BOOL)animated
 {
+    for (id <MKAnnotation> annotation in mapView.annotations) {
+        MKAnnotationView *anView = [mapView viewForAnnotation:annotation];
+        if ([anView isKindOfClass:[AIRMapMarker class]]) {
+            [UIView animateWithDuration:0.50 animations:^{
+                anView.alpha = 1.0;
+            }];
+        }
+    }
+    
     [mapView.regionChangeObserveTimer invalidate];
     mapView.regionChangeObserveTimer = nil;
 
