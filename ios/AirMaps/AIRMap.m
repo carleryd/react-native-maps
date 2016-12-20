@@ -9,6 +9,7 @@
 
 #import "AIRMap.h"
 
+#import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
 #import "UIView+React.h"
@@ -17,6 +18,7 @@
 #import "AIRMapCircle.h"
 #import <QuartzCore/QuartzCore.h>
 #import "AIRMapUrlTile.h"
+#import "AIRMapUtilities.h"
 
 const CLLocationDegrees AIRMapDefaultSpan = 0.005;
 const NSTimeInterval AIRMapRegionChangeObserveInterval = 0.1;
@@ -157,13 +159,55 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    utilities.prevPressedMarker.alpha = 0.7;
+    
+    // Hack to fix bug with marker being left selected even though we no longer press the map.
+    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 1.0);
+    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
+        // do work in the UI thread here
+        if ([utilities prevPressedMarker] != nil) {
+            [[utilities prevPressedMarker] setAlpha:1.0];
+            [utilities setPrevPressedMarker:nil];
+        }
+    });
+}
+
+- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    utilities.prevPressedMarker.alpha = 1.0;
+    [utilities setPrevPressedMarker:nil];
+}
+
+- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapMarker *marker = [utilities prevPressedMarker];
+    
+    if (marker != nil) {
+        id markerPressEvent = @{
+                                @"action": @"marker-press",
+                                @"id": marker.identifier ?: @"unknown",
+                                @"coordinate": @{
+                                        @"latitude": @(marker.coordinate.latitude),
+                                        @"longitude": @(marker.coordinate.longitude)
+                                        }
+                                };
+        
+        if (marker.onPress) marker.onPress(markerPressEvent);
+        [utilities setPrevPressedMarker:nil];
+    }
+}
+
 // Allow touches to be sent to our calloutview.
 // See this for some discussion of why we need to override this: https://github.com/nfarina/calloutview/pull/9
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
-
+    
+    // We need to trigger hitTest on AIRMapMarker so we can highlight and select it on click
+    RCTView *view = (UIView *)[super hitTest:point withEvent:event];
+    
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView
     // - - UIView
@@ -173,21 +217,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // - - - - MKOverlayContainerView
     // - - - MKNewAnnotationContainerView
     // - - MKAttributionLabel
-
-    UIView* container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
-//    Using aView we can determine where in the marker we clicked, and possibly trigger some callback to JS?
-//    Dunno how that would work from over here though...
-//    MKAnnotationView *aView = [container.subviews objectAtIndex:0];
-//    NSLog(@"aView center %f %f", aView.center.x, aView.center.y);
-//    NSLog(@"aView width height %f %f", aView.bounds.size.width, aView.bounds.size.width);
-//    for (UIView *aV in container.subviews) {
-//        NSLog(@"aV x y width height %f %f %f %f", aV.bounds.origin.x, aV.bounds.origin.y, aV.bounds.size.width, aV.bounds.size.height);
-//    }
-//    UIView *container = [([self.subviews objectAtIndex:0]).subviews objectAtIndex:2];
-//    NSLog(@"size originX originY %f %f %f", container.frame.size, container.frame.origin.x, container.frame.origin.y);
-//    NSLog(@"centerX centerY %f %f", container.center.x, container.center.y);
-//    NSLog(@"x y width height %f %f %f %f", container.bounds.origin.x, container.bounds.origin.y, container.bounds.size.width, container.bounds.size.height);
-//    NSLog(@"center %f %f", container.center.x, container.center.y);
+    UIView *container = ((UIView *)[((UIView *)[self.subviews objectAtIndex:0]).subviews objectAtIndex:2]);
     return container;
 }
 

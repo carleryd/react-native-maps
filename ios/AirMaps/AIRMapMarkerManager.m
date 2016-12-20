@@ -25,15 +25,6 @@ RCT_EXPORT_MODULE()
 - (UIView *)view
 {
     AIRMapMarker *marker = [AIRMapMarker new];
-//    if (marker) {
-//        NSLog(@"marker true");
-//        marker.alpha = 0.0;
-//        [UIView animateWithDuration:2.5 delay:0.0 options:0 animations:^{
-//            marker.alpha = 1.0;
-//        } completion:nil];
-//    } else {
-//        NSLog(@"marker FALSE");
-//    }
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleTap:)];
     // setting this to NO allows the parent MapView to continue receiving marker selection events
     tapGestureRecognizer.cancelsTouchesInView = NO;

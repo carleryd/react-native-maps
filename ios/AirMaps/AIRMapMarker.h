@@ -50,6 +50,7 @@
 - (void)showCalloutView;
 - (void)hideCalloutView;
 - (BOOL)shouldUsePinView;
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
 @end
 
