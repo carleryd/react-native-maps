@@ -26,6 +26,7 @@
 #import "SMCalloutView.h"
 #import "AIRMapUrlTile.h"
 #import "AIRMapSnapshot.h"
+#import "AIRMapUtilities.h"
 
 #import <MapKit/MapKit.h>
 
@@ -469,11 +470,11 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         ((MKUserLocation *)marker).title = @"";
         return nil;
     }
-    
+
     if (marker) {
         marker.transform = CGAffineTransformMakeScale(0, 0);
         marker.enabled = false;
-        
+
         [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
             marker.transform = CGAffineTransformIdentity;
         } completion:^(BOOL finished){
