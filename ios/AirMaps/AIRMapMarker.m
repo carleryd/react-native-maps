@@ -128,11 +128,13 @@
         } else if ([_dotColor isEqualToString:@"red"]) {
             UIColor *color = [UIColor colorWithRed:0.59 green:0.12 blue:0.14 alpha:1.0];
             annotationView.image = [self createCircle:color];
+        } else if ([_dotColor isEqualToString:@"gray"]) {
+            UIColor *color = UIColorFromRGB(0x888888);
+            annotationView.image = [self createCircle:color];
         } else {
             UIColor *color = [UIColor colorWithRed:1.00 green:1.00 blue:1.00 alpha:1.0];
             annotationView.image = [self createCircle:color];
         }
-
         return annotationView;
     } else {
         // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.
