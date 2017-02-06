@@ -150,26 +150,27 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+/**
+ * If we have an active marker pressed and we begin a touch on the map:
+ * 1. Set that marker to a lower opacity.
+ * 2. Record at what point on the screen we started the press,
+ *    this is useful for touchesMoved.
+ */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 0.7;
-    utilities.hasMovedRegion = NO;
+    if ([utilities prevPressedMarker] != nil) {
+        utilities.prevPressedMarker.alpha = 0.5;
 
-    UITouch *touch = [[event allTouches] anyObject];
-    [utilities setTouchStartPos:[touch locationInView:touch.view]];
-    CGPoint point = [touch locationInView:touch.view];
-
-    // Hack to fix bug with marker being left selected even though we no longer press the map.
-    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 1.0);
-    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
-        // do work in the UI thread here
-        if ([utilities prevPressedMarker] != nil) {
-            [[utilities prevPressedMarker] setAlpha:1.0];
-            [utilities setPrevPressedMarker:nil];
-        }
-    });
+        UITouch *touch = [[event allTouches] anyObject];
+        [utilities setTouchStartPos:[touch locationInView:touch.view]];
+        CGPoint point = [touch locationInView:touch.view];
+    }
 }
 
+/**
+ * If we move too far while having an active marker pressed,
+ * revert marker settings and set to no active marker pressed.
+ */
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
 
@@ -186,11 +187,15 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     }
 }
 
+/**
+ * When we stop touching map, and we have an active marker pressed,
+ * send markerPress to JS land and set to no active marker pressed.
+ */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapMarker *marker = [utilities prevPressedMarker];
 
-    if ([utilities hasMovedRegion] == NO) {
+    if ([utilities prevPressedMarker] != nil) {
         id markerPressEvent = @{
                                 @"action": @"marker-press",
                                 @"id": marker.identifier ?: @"unknown",
@@ -201,8 +206,16 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
-        utilities.prevPressedMarker.alpha = 1.0;
+        marker.alpha = 0.5;
         [utilities setPrevPressedMarker:nil];
+        
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Test Message"
+//                                                        message:@"This is a sample"
+//                                                       delegate:nil
+//                                              cancelButtonTitle:@"OK"
+//                                              otherButtonTitles:nil];
+//        [alert show];
+//        [alert release];
     }
 }
 
