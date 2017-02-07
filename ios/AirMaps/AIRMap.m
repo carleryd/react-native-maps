@@ -208,14 +208,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         if (marker.onPress) marker.onPress(markerPressEvent);
         marker.alpha = 0.5;
         [utilities setPrevPressedMarker:nil];
-        
-//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Test Message"
-//                                                        message:@"This is a sample"
-//                                                       delegate:nil
-//                                              cancelButtonTitle:@"OK"
-//                                              otherButtonTitles:nil];
-//        [alert show];
-//        [alert release];
     }
 }
 

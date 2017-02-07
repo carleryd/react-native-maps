@@ -74,7 +74,7 @@
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
         if ([utilities prevPressedMarker] != nil) {
-            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(may be user_has_popped)
+            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
         }
         
         [utilities setPrevPressedMarker:self];
