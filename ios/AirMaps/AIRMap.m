@@ -117,16 +117,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        UIView *view = subview;
-        [UIView animateWithDuration:0.25 animations:^{
-            view.alpha = 0.0;
-            AIRMapMarker *marker = (AIRMapMarker *)view;
-            if(marker && marker.selected) {
-                view.transform = CGAffineTransformMakeScale(2, 2);
-            }
-        } completion:^(BOOL finished) {
-            [self removeAnnotation:(id<MKAnnotation>)view];
-        }];
+        [self removeAnnotation:(id<MKAnnotation>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
@@ -209,6 +200,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
+        utilities.prevPressedMarker.alpha = 1.0;
         [utilities setPrevPressedMarker:nil];
     }
 }
