@@ -630,8 +630,18 @@ static int kDragCenterContext;
 
 - (void)_regionChanged:(AIRMap *)mapView
 {
+    /**
+     * Reset the marker utilities when region has changed because
+     * we do not expect a press on a marker to succeed if the map
+     * starts moving.
+     * 1. Revert marker opacity to what it was before(problems with JS atm).
+     * 2. Set last marker pressed to nil.
+     */
+
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    [utilities setHasMovedRegion:YES];
+    utilities.prevPressedMarker.alpha = 1.0; // TODO: Revert to previous value instead of 1.0
+    [utilities setPrevPressedMarker:nil];
+    // [utilities setHasMovedRegion:YES];
 
     BOOL needZoom = NO;
     CGFloat newLongitudeDelta = 0.0f;

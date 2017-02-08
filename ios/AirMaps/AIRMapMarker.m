@@ -72,6 +72,11 @@
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     if (CGRectContainsPoint(self.bounds, point)) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    
+        if ([utilities prevPressedMarker] != nil) {
+            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
+        }
+        
         [utilities setPrevPressedMarker:self];
     }
     return [super hitTest:point withEvent:event];
