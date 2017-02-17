@@ -10,11 +10,11 @@
 #import "AIRMapMarker.h"
 #import "AIRMapUtilities.h"
 
-#import "RCTEventDispatcher.h"
-#import "UIView+React.h"
-#import "RCTBridge.h"
-#import "RCTUtils.h"
-#import "RCTImageLoader.h"
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
+#import <React/RCTImageLoader.h>
+#import <React/RCTUtils.h>
+#import <React/UIView+React.h>
 #import "NSString+Color.h"
 
 #define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0];
