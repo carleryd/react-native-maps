@@ -27,6 +27,7 @@
 | `loadingEnabled` | `Boolean` | `false` | If `true` a loading indicator will show while the map is loading.
 | `loadingIndicatorColor` | `Color` | `#606060` | Sets loading indicator color, default to `#606060`.
 | `loadingBackgroundColor` | `Color` | `#FFFFFF` | Sets loading background color, default to `#FFFFFF`.
+| `clusterMarkers` | `Boolean` | `false` | If `true` markers will cluster together at different zoom levels.
 
 
 

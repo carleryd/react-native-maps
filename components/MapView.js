@@ -168,6 +168,13 @@ const propTypes = {
   scrollEnabled: PropTypes.bool,
 
   /**
+   * If `true` markers are clustered together once they start to overlap.
+   * Default value is `false`.
+   *
+   */
+  clusterMarkers: PropTypes.bool,
+ 
+  /**
    * If `false` the user won't be able to adjust the camera’s pitch angle.
    * Default value is `true`.
    *

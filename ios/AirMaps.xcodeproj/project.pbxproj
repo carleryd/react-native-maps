@@ -26,6 +26,10 @@
 		9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */; };
 		DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */; };
 		DA6C263E1C9E324A0035349F /* AIRMapUrlTileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C263D1C9E324A0035349F /* AIRMapUrlTileManager.m */; };
+		9D42D20C1C91975700920569 /* FBAnnotationCluster.m in Sources */ = {isa = PBXBuildFile; fileRef = 9D42D2041C91975700920569 /* FBAnnotationCluster.m */; };
+		9D42D20D1C91975700920569 /* FBClusteringManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9D42D2071C91975700920569 /* FBClusteringManager.m */; };
+		9D42D20E1C91975700920569 /* FBQuadTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 9D42D2091C91975700920569 /* FBQuadTree.m */; };
+		9D42D20F1C91975700920569 /* FBQuadTreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 9D42D20B1C91975700920569 /* FBQuadTreeNode.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -80,6 +84,16 @@
 		DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUrlTile.m; sourceTree = "<group>"; };
 		DA6C263C1C9E324A0035349F /* AIRMapUrlTileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUrlTileManager.h; sourceTree = "<group>"; };
 		DA6C263D1C9E324A0035349F /* AIRMapUrlTileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUrlTileManager.m; sourceTree = "<group>"; };
+		9D42D2021C91975700920569 /* .gitkeep */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		9D42D2031C91975700920569 /* FBAnnotationCluster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationCluster.h; sourceTree = "<group>"; };
+		9D42D2041C91975700920569 /* FBAnnotationCluster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBAnnotationCluster.m; sourceTree = "<group>"; };
+		9D42D2051C91975700920569 /* FBAnnotationClustering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationClustering.h; sourceTree = "<group>"; };
+		9D42D2061C91975700920569 /* FBClusteringManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBClusteringManager.h; sourceTree = "<group>"; };
+		9D42D2071C91975700920569 /* FBClusteringManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBClusteringManager.m; sourceTree = "<group>"; };
+		9D42D2081C91975700920569 /* FBQuadTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBQuadTree.h; sourceTree = "<group>"; };
+		9D42D2091C91975700920569 /* FBQuadTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTree.m; sourceTree = "<group>"; };
+		9D42D20A1C91975700920569 /* FBQuadTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBQuadTreeNode.h; sourceTree = "<group>"; };
+		9D42D20B1C91975700920569 /* FBQuadTreeNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTreeNode.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +112,7 @@
 			children = (
 				11FA5C531C4A1296003AC2EE /* AirMaps */,
 				11FA5C521C4A1296003AC2EE /* Products */,
+				9D42D2011C91975700920569 /* FBAnnotationClustering */,
 			);
 			sourceTree = "<group>";
 		};
@@ -152,6 +167,23 @@
 				DA6C263D1C9E324A0035349F /* AIRMapUrlTileManager.m */,
 			);
 			path = AirMaps;
+			sourceTree = "<group>";
+		};
+		9D42D2011C91975700920569 /* FBAnnotationClustering */ = {
+			isa = PBXGroup;
+			children = (
+				9D42D2021C91975700920569 /* .gitkeep */,
+				9D42D2031C91975700920569 /* FBAnnotationCluster.h */,
+				9D42D2041C91975700920569 /* FBAnnotationCluster.m */,
+				9D42D2051C91975700920569 /* FBAnnotationClustering.h */,
+				9D42D2061C91975700920569 /* FBClusteringManager.h */,
+				9D42D2071C91975700920569 /* FBClusteringManager.m */,
+				9D42D2081C91975700920569 /* FBQuadTree.h */,
+				9D42D2091C91975700920569 /* FBQuadTree.m */,
+				9D42D20A1C91975700920569 /* FBQuadTreeNode.h */,
+				9D42D20B1C91975700920569 /* FBQuadTreeNode.m */,
+			);
+			path = FBAnnotationClustering;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -216,18 +248,22 @@
 				1125B2DB1C4AD3DA007D0023 /* AIRMapCallout.m in Sources */,
 				1125B2E01C4AD3DA007D0023 /* AIRMapManager.m in Sources */,
 				1125B2E61C4AD3DA007D0023 /* AIRMapPolylineManager.m in Sources */,
+				9D42D20C1C91975700920569 /* FBAnnotationCluster.m in Sources */,
 				1125B2DD1C4AD3DA007D0023 /* AIRMapCircle.m in Sources */,
 				1125B2E51C4AD3DA007D0023 /* AIRMapPolyline.m in Sources */,
 				DA6C263E1C9E324A0035349F /* AIRMapUrlTileManager.m in Sources */,
+				9D42D20F1C91975700920569 /* FBQuadTreeNode.m in Sources */,
 				1125B2DA1C4AD3DA007D0023 /* AIRMap.m in Sources */,
 				1125B2E71C4AD3DA007D0023 /* RCTConvert+MoreMapKit.m in Sources */,
 				1125B2DF1C4AD3DA007D0023 /* AIRMapCoordinate.m in Sources */,
 				1125B2F21C4AD445007D0023 /* SMCalloutView.m in Sources */,
 				1125B2E11C4AD3DA007D0023 /* AIRMapMarker.m in Sources */,
+				9D42D20D1C91975700920569 /* FBClusteringManager.m in Sources */,
 				1125B2E21C4AD3DA007D0023 /* AIRMapMarkerManager.m in Sources */,
 				DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */,
 				1125B2DE1C4AD3DA007D0023 /* AIRMapCircleManager.m in Sources */,
 				9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */,
+				9D42D20E1C91975700920569 /* FBQuadTree.m in Sources */,
 				1125B2DC1C4AD3DA007D0023 /* AIRMapCalloutManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
