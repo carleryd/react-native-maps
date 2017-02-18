@@ -287,7 +287,18 @@
 - (void)setDotColor:(NSString *)dotColor
 {
     _dotColor = dotColor;
-//    self.dotColor = _dotColor;
+}
+
+- (void)setIsImportant:(BOOL)isImportant
+{
+    NSLog(@"isImportant %d", isImportant);
+    _isImportant = isImportant;
+}
+
+- (void)setUnimportantOpacity:(float)unimportantOpacity
+{
+    NSLog(@"unimportantOpacity %f", unimportantOpacity);
+    _unimportantOpacity = unimportantOpacity;
 }
 
 - (void)setPinColor:(UIColor *)pinColor

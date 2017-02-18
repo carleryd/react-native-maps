@@ -7,7 +7,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "AIRMapMarker.h"
 #import "AIRMapCallout.h"
 
 #import <MapKit/MapKit.h>
@@ -31,9 +30,16 @@
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *subtitle;
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
-@property (nonatomic, copy) NSString *dotColor;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
+// TODO: Do something about this, its hacky
+@property (nonatomic, copy) NSString *dotColor;
+/**
+ * TODO: Move to subclass AheadMarker
+ */
+@property (nonatomic, assign) BOOL isImportant;
+@property (nonatomic, assign) float unimportantOpacity;
+
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) RCTDirectEventBlock onSelect;

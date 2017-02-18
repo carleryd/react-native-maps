@@ -157,8 +157,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    if ([utilities prevPressedMarker] != nil) {
-        utilities.prevPressedMarker.alpha = 0.5;
+    AIRMapMarker* marker = [utilities prevPressedMarker];
+    if (marker != nil) {
+        marker.alpha = marker.unimportantOpacity;
 
         UITouch *touch = [[event allTouches] anyObject];
         [utilities setTouchStartPos:[touch locationInView:touch.view]];
@@ -205,7 +206,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
-        marker.alpha = 0.5;
+        NSLog(@"marker.unimportantOpacity %@", marker);
+        marker.alpha = marker.unimportantOpacity;
         [utilities setPrevPressedMarker:nil];
     }
 }

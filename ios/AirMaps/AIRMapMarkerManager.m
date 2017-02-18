@@ -41,10 +41,16 @@ RCT_EXPORT_VIEW_PROPERTY(coordinate, CLLocationCoordinate2D)
 RCT_EXPORT_VIEW_PROPERTY(centerOffset, CGPoint)
 RCT_EXPORT_VIEW_PROPERTY(calloutOffset, CGPoint)
 RCT_REMAP_VIEW_PROPERTY(image, imageSrc, NSString)
-RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
 RCT_EXPORT_VIEW_PROPERTY(pinColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
+// TODO: Do something about this, its hacky
+RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
+/**
+ * TODO: Move to subclass AheadMarker
+ */
+RCT_EXPORT_VIEW_PROPERTY(isImportant, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(unimportantOpacity, float)
 
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSelect, RCTDirectEventBlock)

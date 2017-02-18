@@ -54,6 +54,16 @@ const propTypes = {
   dotColor: PropTypes.string,
 
   /**
+   * A replacement source for a default annotation.
+   */
+  isImportant: PropTypes.bool,
+
+  /**
+   * A replacement source for a default annotation.
+   */
+  unimportantOpacity: PropTypes.number,
+
+  /**
    * If no custom marker view or custom image is provided, the platform default pin will be used,
    * which can be customized by this color. Ignored if a custom marker is being used.
    */

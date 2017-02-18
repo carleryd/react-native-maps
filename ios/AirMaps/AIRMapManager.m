@@ -510,7 +510,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         return nil;
     }
 
-    if (marker) {
+    if ([marker isKindOfClass:[AIRMapMarker class]]) {
         marker.transform = CGAffineTransformMakeScale(0, 0);
         marker.enabled = false;
 
@@ -676,11 +676,12 @@ static int kDragCenterContext;
      * 1. Revert marker opacity to what it was before(problems with JS atm).
      * 2. Set last marker pressed to nil.
      */
-
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 1.0; // TODO: Revert to previous value instead of 1.0
+    AIRMapMarker* marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
+    float alpha = (marker.isImportant == YES) ? 1.0 : marker.unimportantOpacity;
+    [marker setAlpha:alpha];
     [utilities setPrevPressedMarker:nil];
-    // [utilities setHasMovedRegion:YES];
+    
 
     BOOL needZoom = NO;
     CGFloat newLongitudeDelta = 0.0f;
