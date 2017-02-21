@@ -289,17 +289,25 @@
     _dotColor = dotColor;
 }
 
-- (void)setIsImportant:(BOOL)isImportant
+- (void)setRadius:(float)radius
 {
-    NSLog(@"isImportant %d", isImportant);
-    _isImportant = isImportant;
+    NSLog(@"set radius %f", radius);
+    _radius = radius;
 }
 
-- (void)setUnimportantOpacity:(float)unimportantOpacity
-{
-    NSLog(@"unimportantOpacity %f", unimportantOpacity);
-    _unimportantOpacity = unimportantOpacity;
-}
+//- (void)setImportantStatus:(ImportantStatus)importantStatus
+//{
+//    NSLog(@"ASDF setImportantStatus %@", importantStatus);
+//    NSLog(@"ASDF setImportantStatus %f", importantStatus.unimportantOpacity);
+//    
+//     _importantStatus = importantStatus;
+//    
+//    /**
+//     * Set the opacity of marker based on current important status
+//     */
+//
+//    //self.alpha = ()
+//}
 
 - (void)setPinColor:(UIColor *)pinColor
 {

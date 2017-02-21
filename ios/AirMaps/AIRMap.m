@@ -80,6 +80,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         // be identical to the built-in callout view (which has a private API)
         self.calloutView = [SMCalloutView platformCalloutView];
         self.calloutView.delegate = self;
+        
+        // clusteringManager handles the clustering of markers.
+        // We init it here so that we can add markers to it, at the same time as we add them to the map
+        self.clusteringManager = [[FBClusteringManager alloc] init];
     }
     return self;
 }
@@ -95,7 +99,17 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // Our desired API is to pass up markers/overlays as children to the mapview component.
     // This is where we intercept them and do the appropriate underlying mapview action.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        [self addAnnotation:(id <MKAnnotation>) subview];
+        /**
+         * Add the annotation both to the map, and to the clustering manager.
+         * The clustering manager determines if the annotation should be clustered.
+         */
+//        NSLog(@"REACT insertReactSubview %@ at index %i", subview, atIndex);
+//        NSLog(@"REACT subview", subview);
+//        AIRMapMarker *m = subview;
+//        MKAnnotationView *v = subview;
+//        NSLog(@"REACT height %f width %f", m.frame.size.width, m.frame.size.width);
+        [self addAnnotation:(id<MKAnnotation>)subview];
+        [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
         [self addOverlay:(id<MKOverlay>)subview];
@@ -118,6 +132,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
         [self removeAnnotation:(id<MKAnnotation>) subview];
+        [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
@@ -159,7 +174,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapMarker* marker = [utilities prevPressedMarker];
     if (marker != nil) {
-        marker.alpha = marker.unimportantOpacity;
+//        NSLog(@"ASDF marker %@", marker.importantStatus);
+//        NSLog(@"ASDF marker %f", marker.importantStatus.unimportantOpacity);
+        marker.alpha = 0.5;//marker.unimportantOpacity;
 
         UITouch *touch = [[event allTouches] anyObject];
         [utilities setTouchStartPos:[touch locationInView:touch.view]];
@@ -206,8 +223,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
-        NSLog(@"marker.unimportantOpacity %@", marker);
-        marker.alpha = marker.unimportantOpacity;
+        NSLog(@"ASDF marker.unimportantOpacity %f", marker.importantStatus.unimportantOpacity);
+        marker.alpha = 0.5;//marker.unimportantOpacity;
         [utilities setPrevPressedMarker:nil];
     }
 }

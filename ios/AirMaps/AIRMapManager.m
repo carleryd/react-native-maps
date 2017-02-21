@@ -65,6 +65,7 @@ RCT_EXPORT_MODULE()
     return map;
 }
 
+RCT_EXPORT_VIEW_PROPERTY(clusterMarkers, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsUserLocation, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(followsUserLocation, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsPointsOfInterest, BOOL)
@@ -503,6 +504,32 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(AIRMapMarker *)marker
 {
+    /**
+     * If our marker is a cluster, i.e. the FBAnnotationClustering code has done what???
+     * Note: It seems that the marker is modified, and without this if the app crashes.
+     */
+//    NSLog(@"ASDF CLUSTERING 1");
+    if ([marker isKindOfClass:[FBAnnotationCluster class]]) {
+        FBAnnotationCluster *cluster = (FBAnnotationCluster *)marker;
+        
+//        MKAnnotationView *m = [[MKAnnotationView alloc] initWithAnnotation:marker
+//                                                           reuseIdentifier:nil];
+        MKAnnotationView *m = [cluster topAnnotation];
+        
+//        UILabel *labelView = [[UILabel alloc] initWithFrame:CGRectMake(m.center.x, m.center.y, 40, 40)];
+//        [labelView setBackgroundColor:[UIColor colorWithRed:0.7294 green:0.7843 blue:0.1921 alpha:1.0]];
+//        
+//        labelView.layer.cornerRadius = labelView.frame.size.width / 2;
+//        labelView.clipsToBounds = YES;
+//        [labelView setText:[NSString stringWithFormat:@"%lu", (unsigned long)cluster.annotations.count]];
+//        [labelView setTextAlignment:NSTextAlignmentCenter];
+//        [m addSubview:labelView];
+        
+        // Also set center offset for annotation
+//        [m setCenterOffset:CGPointMake(-20, -20)];
+        return m;
+    }
+    
     // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
     if ([marker isKindOfClass:[MKUserLocation class]])
     {
@@ -510,6 +537,9 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         return nil;
     }
 
+    /**
+     * Marker "creation" animation. TODO: should only occur for AheadMarker
+     */
     if ([marker isKindOfClass:[AIRMapMarker class]]) {
         marker.transform = CGAffineTransformMakeScale(0, 0);
         marker.enabled = false;
@@ -645,6 +675,18 @@ static int kDragCenterContext;
 
     mapView.pendingCenter = mapView.region.center;
     mapView.pendingSpan = mapView.region.span;
+    
+    /**
+     * If we use clustering, trigger cluster for new region.
+     */
+    if (mapView.clusterMarkers) {
+        [[NSOperationQueue new] addOperationWithBlock:^{
+            double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
+            NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect withZoomScale:scale];
+            
+            [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
+        }];
+    }
 }
 
 - (void)mapViewWillStartRenderingMap:(AIRMap *)mapView
@@ -678,10 +720,9 @@ static int kDragCenterContext;
      */
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapMarker* marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
-    float alpha = (marker.isImportant == YES) ? 1.0 : marker.unimportantOpacity;
+    float alpha = 1.0;//(marker.isImportant == YES) ? 1.0 : marker.unimportantOpacity;
     [marker setAlpha:alpha];
     [utilities setPrevPressedMarker:nil];
-    
 
     BOOL needZoom = NO;
     CGFloat newLongitudeDelta = 0.0f;

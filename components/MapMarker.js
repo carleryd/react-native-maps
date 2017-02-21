@@ -54,14 +54,17 @@ const propTypes = {
   dotColor: PropTypes.string,
 
   /**
-   * A replacement source for a default annotation.
+   * TODO
    */
-  isImportant: PropTypes.bool,
+  importantStatus: PropTypes.shape({
+      isImportant: PropTypes.bool,
+      unimportantOpacity: PropTypes.number,
+  }),
 
   /**
-   * A replacement source for a default annotation.
+   * Need in order to calculate clustering.
    */
-  unimportantOpacity: PropTypes.number,
+  radius: PropTypes.number,
 
   /**
    * If no custom marker view or custom image is provided, the platform default pin will be used,

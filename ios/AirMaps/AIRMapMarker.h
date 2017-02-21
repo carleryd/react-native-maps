@@ -21,6 +21,12 @@
 
 @interface AIRMapMarker : MKAnnotationView <MKAnnotation>
 
+struct ImportantStatus {
+    BOOL isImportant;
+    float unimportantOpacity;
+};
+typedef struct ImportantStatus ImportantStatus;
+
 @property (nonatomic, strong) AIRMapCallout *calloutView;
 @property (nonatomic, weak) AIRMap *map;
 @property (nonatomic, weak) RCTBridge *bridge;
@@ -37,8 +43,10 @@
 /**
  * TODO: Move to subclass AheadMarker
  */
-@property (nonatomic, assign) BOOL isImportant;
-@property (nonatomic, assign) float unimportantOpacity;
+//@property (nonatomic, assign) BOOL isImportant;
+//@property (nonatomic, assign) float unimportantOpacity;
+@property (nonatomic, assign) ImportantStatus importantStatus;
+@property (nonatomic, assign) float radius;
 
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;

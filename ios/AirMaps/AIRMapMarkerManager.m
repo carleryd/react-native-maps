@@ -10,6 +10,7 @@
 #import "AIRMapMarkerManager.h"
 
 #import <React/RCTConvert+CoreLocation.h>
+#import "RCTConvert+MoreMapKit.h"
 #import <React/RCTUIManager.h>
 #import <React/UIView+React.h>
 #import "AIRMapMarker.h"
@@ -49,8 +50,9 @@ RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
 /**
  * TODO: Move to subclass AheadMarker
  */
-RCT_EXPORT_VIEW_PROPERTY(isImportant, BOOL)
-RCT_EXPORT_VIEW_PROPERTY(unimportantOpacity, float)
+RCT_EXPORT_VIEW_PROPERTY(importantStatus, ImportantStatus)
+RCT_EXPORT_VIEW_PROPERTY(radius, float)
+
 
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSelect, RCTDirectEventBlock)
@@ -59,7 +61,6 @@ RCT_EXPORT_VIEW_PROPERTY(onCalloutPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDrag, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragEnd, RCTDirectEventBlock)
-
 
 RCT_EXPORT_METHOD(showCallout:(nonnull NSNumber *)reactTag)
 {
@@ -106,7 +107,7 @@ RCT_EXPORT_METHOD(hideCallout:(nonnull NSNumber *)reactTag)
             return;
         }
     }
-
+    
     // the actual marker got clicked
     id event = @{
             @"action": @"marker-press",

@@ -24,6 +24,10 @@
 		1125B2F21C4AD445007D0023 /* SMCalloutView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1125B2F11C4AD445007D0023 /* SMCalloutView.m */; };
 		9F34256E1E3F812200752582 /* NSString+Color.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F34256D1E3F812200752582 /* NSString+Color.m */; };
 		9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */; };
+		9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */; };
+		9F7EA4DE1E5B0DEB00AFA5DA /* FBClusteringManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */; };
+		9F7EA4DF1E5B0DEB00AFA5DA /* FBQuadTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */; };
+		9F7EA4E01E5B0DEB00AFA5DA /* FBQuadTreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */; };
 		DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */; };
 		DA6C263E1C9E324A0035349F /* AIRMapUrlTileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C263D1C9E324A0035349F /* AIRMapUrlTileManager.m */; };
 /* End PBXBuildFile section */
@@ -76,6 +80,16 @@
 		9F34256D1E3F812200752582 /* NSString+Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Color.m"; sourceTree = "<group>"; };
 		9F3BA0021DF98AE50017D089 /* AIRMapUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUtilities.h; sourceTree = "<group>"; };
 		9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUtilities.m; sourceTree = "<group>"; };
+		9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		9F7EA4D41E5B0DEA00AFA5DA /* FBAnnotationCluster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationCluster.h; sourceTree = "<group>"; };
+		9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBAnnotationCluster.m; sourceTree = "<group>"; };
+		9F7EA4D61E5B0DEA00AFA5DA /* FBAnnotationClustering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationClustering.h; sourceTree = "<group>"; };
+		9F7EA4D71E5B0DEA00AFA5DA /* FBClusteringManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBClusteringManager.h; sourceTree = "<group>"; };
+		9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBClusteringManager.m; sourceTree = "<group>"; };
+		9F7EA4D91E5B0DEA00AFA5DA /* FBQuadTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBQuadTree.h; sourceTree = "<group>"; };
+		9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTree.m; sourceTree = "<group>"; };
+		9F7EA4DB1E5B0DEA00AFA5DA /* FBQuadTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBQuadTreeNode.h; sourceTree = "<group>"; };
+		9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTreeNode.m; sourceTree = "<group>"; };
 		DA6C26361C9E2AFE0035349F /* AIRMapUrlTile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUrlTile.h; sourceTree = "<group>"; };
 		DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUrlTile.m; sourceTree = "<group>"; };
 		DA6C263C1C9E324A0035349F /* AIRMapUrlTileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUrlTileManager.h; sourceTree = "<group>"; };
@@ -96,6 +110,7 @@
 		11FA5C481C4A1296003AC2EE = {
 			isa = PBXGroup;
 			children = (
+				9F7EA4D21E5B0DEA00AFA5DA /* FBAnnotationClustering */,
 				11FA5C531C4A1296003AC2EE /* AirMaps */,
 				11FA5C521C4A1296003AC2EE /* Products */,
 			);
@@ -154,6 +169,23 @@
 			path = AirMaps;
 			sourceTree = "<group>";
 		};
+		9F7EA4D21E5B0DEA00AFA5DA /* FBAnnotationClustering */ = {
+			isa = PBXGroup;
+			children = (
+				9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */,
+				9F7EA4D41E5B0DEA00AFA5DA /* FBAnnotationCluster.h */,
+				9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */,
+				9F7EA4D61E5B0DEA00AFA5DA /* FBAnnotationClustering.h */,
+				9F7EA4D71E5B0DEA00AFA5DA /* FBClusteringManager.h */,
+				9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */,
+				9F7EA4D91E5B0DEA00AFA5DA /* FBQuadTree.h */,
+				9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */,
+				9F7EA4DB1E5B0DEA00AFA5DA /* FBQuadTreeNode.h */,
+				9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */,
+			);
+			path = FBAnnotationClustering;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -210,6 +242,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F7EA4DF1E5B0DEB00AFA5DA /* FBQuadTree.m in Sources */,
+				9F7EA4DE1E5B0DEB00AFA5DA /* FBClusteringManager.m in Sources */,
 				1125B2E31C4AD3DA007D0023 /* AIRMapPolygon.m in Sources */,
 				9F34256E1E3F812200752582 /* NSString+Color.m in Sources */,
 				1125B2E41C4AD3DA007D0023 /* AIRMapPolygonManager.m in Sources */,
@@ -223,10 +257,12 @@
 				1125B2E71C4AD3DA007D0023 /* RCTConvert+MoreMapKit.m in Sources */,
 				1125B2DF1C4AD3DA007D0023 /* AIRMapCoordinate.m in Sources */,
 				1125B2F21C4AD445007D0023 /* SMCalloutView.m in Sources */,
+				9F7EA4E01E5B0DEB00AFA5DA /* FBQuadTreeNode.m in Sources */,
 				1125B2E11C4AD3DA007D0023 /* AIRMapMarker.m in Sources */,
 				1125B2E21C4AD3DA007D0023 /* AIRMapMarkerManager.m in Sources */,
 				DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */,
 				1125B2DE1C4AD3DA007D0023 /* AIRMapCircleManager.m in Sources */,
+				9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */,
 				9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */,
 				1125B2DC1C4AD3DA007D0023 /* AIRMapCalloutManager.m in Sources */,
 			);
