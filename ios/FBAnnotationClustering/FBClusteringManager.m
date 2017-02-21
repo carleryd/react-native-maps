@@ -106,7 +106,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
-    return [self clusteredAnnotationsWithinMapRect:rect withZoomScale:zoomScale withFilter:nil];
+    return [self myClusteringFunc:rect withZoomScale:zoomScale withFilter:nil];
 }
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
@@ -118,14 +118,12 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         cellSize *= [self.delegate cellSizeFactorForCoordinator:self];
     }
     double scaleFactor = zoomScale / cellSize;
-    NSLog(@"CLUSTER cellSize %f", cellSize);
     
     NSInteger minX = floor(MKMapRectGetMinX(rect) * scaleFactor);
     NSInteger maxX = floor(MKMapRectGetMaxX(rect) * scaleFactor);
     NSInteger minY = floor(MKMapRectGetMinY(rect) * scaleFactor);
     NSInteger maxY = floor(MKMapRectGetMaxY(rect) * scaleFactor);
     
-    NSLog(@"CLUSTER minX %i maxX %i minY %i maxY %i", minX, maxX, minY, maxY);
     NSMutableArray *clusteredAnnotations = [[NSMutableArray alloc] init];
     
     [self.lock lock];
@@ -171,17 +169,127 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                 FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
                 cluster.coordinate = coordinate;
                 cluster.annotations = annotations;
-//                if ([obj isKindOfClass:[AIRMapMarker class]] == true) {
-                NSLog(@"CLUSTER WOOHOO MARKER");
+                // TODO REMOVE
                 cluster.topAnnotation = [annotations objectAtIndex:0];
-//                }
-                // cluster.topAnnotation = (find top annotation in annotations)
                 [clusteredAnnotations addObject:cluster];
             }
         }
     }
     [self.lock unlock];
     
+    return [NSArray arrayWithArray:clusteredAnnotations];
+}
+
+- (NSArray *)myClusteringFunc:(MKMapRect)rect
+                withZoomScale:(double)zoomScale
+                   withFilter:(BOOL (^)(id<MKAnnotation>)) filter
+{
+    NSMutableArray *clusteredAnnotations = [[NSMutableArray alloc] init];
+    NSMutableSet *clusteredMarkers = [[NSMutableSet alloc] init];
+    
+    [self.lock lock];
+    
+    /**
+     * Get all annotations in current region.
+     */
+    FBBoundingBox mapBox = FBBoundingBoxForMapRect(rect);
+    NSMutableArray *annotations = [[NSMutableArray alloc] init];
+
+    /**
+     * Iterate through found annotations in current region and add them to 'annotations'.
+     */
+    [self.tree enumerateAnnotationsInBox:mapBox usingBlock:^(id<MKAnnotation> obj) {
+        if(!filter || (filter(obj) == TRUE))
+        {
+            [annotations addObject:obj];
+        }
+    }];
+    
+    /**
+     * Sort annotations based on radius.
+     */
+    NSArray *sortedMarkers;
+    sortedMarkers = [annotations sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        CGFloat first = [(AIRMapMarker *)a radius];
+        CGFloat second = [(AIRMapMarker *)b radius];
+        if (first > second) return (NSComparisonResult)NSOrderedAscending;
+        else if (first > second) return (NSComparisonResult)NSOrderedDescending;
+        return (NSComparisonResult)NSOrderedSame;
+    }];
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+    CGFloat rectWidth = rect.size.width;
+    CGFloat rectHeight = rect.size.height;
+    /**
+     * These are later used to determine whether two markers intersect because our area is
+     * a MKMapRect and we will convert our coordinates to such a point.
+     */
+    CGFloat pixelPerRectPointX = screenWidth / rectWidth;
+    CGFloat pixelPerRectPointY = screenHeight / rectHeight;
+    
+    /**
+     * Beginning at head, look through list and check each annotation against the rest
+     */
+    for (int a = 0; a < [annotations count]; ++a) {
+        // If this marker is already clustered it is of no interest to us.
+        AIRMapMarker *ma = [annotations objectAtIndex:a];
+        if ([clusteredMarkers containsObject:ma]) {
+            continue;
+        }        NSMutableSet *coveredByA = [[NSMutableSet alloc] init];
+        
+        CGFloat latA = ma.coordinate.latitude;
+        CGFloat lngA = ma.coordinate.longitude;
+        MKMapPoint pointA = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latA, lngA));
+        
+        /**
+         * MKMapPoint point is inside of MKMapRect rect.
+         * Using rectsPointsPerPixelX we should be able to determine how far one marker is to another.
+         */
+        for (int b = 0; b < [annotations count]; ++b) {
+            // If this marker is already clustered it is of no interest to us.
+            AIRMapMarker *mb = [annotations objectAtIndex:b];
+            if ([clusteredMarkers containsObject:mb]) continue;
+            if (a != b) {
+                CGFloat latB = mb.coordinate.latitude;
+                CGFloat lngB = mb.coordinate.longitude;
+                MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
+                
+                CGFloat distanceX = fabsf(pointA.x - pointB.x);
+                CGFloat distanceY = fabsf(pointA.y - pointB.y);
+                CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
+                CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
+                CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
+                CGFloat combinedRadius = [ma radius] + [mb radius];
+                
+                if (combinedRadius > pixelHypotenuse) {
+                    [coveredByA addObject:mb];
+                }
+            }
+        }
+        /**
+         * If it covers some markers, create a cluster.
+         * If it has not been a part of any clustering, simply add it.
+         * If it has been covered by another marker, ignore it.
+         */
+        if ([coveredByA count] > 0) {
+            NSLog(@"MYCLUSTER cluster!!!");
+            FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
+            cluster.coordinate = [ma coordinate];
+            cluster.annotations = coveredByA;
+            cluster.topAnnotation = ma;
+            [clusteredAnnotations addObject:cluster];
+            [clusteredMarkers addObjectsFromArray:coveredByA];
+        } else if ([clusteredMarkers member:ma] == false) {
+            NSLog(@"MYCLUSTER NOThing");
+            [clusteredAnnotations addObject:ma];
+        }
+    }
+    NSLog(@"MYCLUSTER 1");
+    [self.lock unlock];
+    
+    NSLog(@"MYCLUSTER 2");
     return [NSArray arrayWithArray:clusteredAnnotations];
 }
 
