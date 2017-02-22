@@ -6,7 +6,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import <MapKit/MapKit.h>
 #import <React/RCTConvert.h>
-#import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 
 @interface RCTConvert (MoreMapKit)
 

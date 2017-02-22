@@ -9,6 +9,7 @@
 #import "FBClusteringManager.h"
 #import "FBQuadTree.h"
 #import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 
 static NSString * const kFBClusteringManagerLockName = @"co.infinum.clusteringLock";
 
@@ -106,7 +107,8 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
-    return [self myClusteringFunc:rect withZoomScale:zoomScale withFilter:nil];
+    return [self myClusteringFunc:rect];
+//    return [self myClusteringFunc:rect withZoomScale:zoomScale withFilter:nil];
 }
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
@@ -181,8 +183,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 }
 
 - (NSArray *)myClusteringFunc:(MKMapRect)rect
-                withZoomScale:(double)zoomScale
-                   withFilter:(BOOL (^)(id<MKAnnotation>)) filter
 {
     NSMutableArray *clusteredAnnotations = [[NSMutableArray alloc] init];
     NSMutableSet *clusteredMarkers = [[NSMutableSet alloc] init];
@@ -199,10 +199,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
      * Iterate through found annotations in current region and add them to 'annotations'.
      */
     [self.tree enumerateAnnotationsInBox:mapBox usingBlock:^(id<MKAnnotation> obj) {
-        if(!filter || (filter(obj) == TRUE))
-        {
-            [annotations addObject:obj];
-        }
+        [annotations addObject:obj];
     }];
     
     /**
@@ -210,8 +207,8 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
      */
     NSArray *sortedMarkers;
     sortedMarkers = [annotations sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-        CGFloat first = [(AIRMapMarker *)a radius];
-        CGFloat second = [(AIRMapMarker *)b radius];
+        CGFloat first = [(AIRMapAheadMarker *)a radius];
+        CGFloat second = [(AIRMapAheadMarker *)b radius];
         if (first > second) return (NSComparisonResult)NSOrderedAscending;
         else if (first > second) return (NSComparisonResult)NSOrderedDescending;
         return (NSComparisonResult)NSOrderedSame;
@@ -234,7 +231,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
      */
     for (int a = 0; a < [annotations count]; ++a) {
         // If this marker is already clustered it is of no interest to us.
-        AIRMapMarker *ma = [annotations objectAtIndex:a];
+        AIRMapAheadMarker *ma = [annotations objectAtIndex:a];
         if ([clusteredMarkers containsObject:ma]) {
             continue;
         }        NSMutableSet *coveredByA = [[NSMutableSet alloc] init];
@@ -249,7 +246,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          */
         for (int b = 0; b < [annotations count]; ++b) {
             // If this marker is already clustered it is of no interest to us.
-            AIRMapMarker *mb = [annotations objectAtIndex:b];
+            AIRMapAheadMarker *mb = [annotations objectAtIndex:b];
             if ([clusteredMarkers containsObject:mb]) continue;
             if (a != b) {
                 CGFloat latB = mb.coordinate.latitude;

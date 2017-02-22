@@ -19,6 +19,7 @@
 #import <React/UIView+React.h>
 #import "AIRMap.h"
 #import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 #import "AIRMapPolyline.h"
 #import "AIRMapPolygon.h"
 #import "AIRMapCircle.h"
@@ -540,16 +541,19 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
     /**
      * Marker "creation" animation. TODO: should only occur for AheadMarker
      */
-    if ([marker isKindOfClass:[AIRMapMarker class]]) {
-        marker.transform = CGAffineTransformMakeScale(0, 0);
-        marker.enabled = false;
-
-        [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
-            marker.transform = CGAffineTransformIdentity;
-        } completion:^(BOOL finished){
-            marker.enabled = true;
-        }];
+    if ([marker isKindOfClass:[AIRMapAheadMarker class]]) {
+        NSLog(@"AHEAD WOOHOO");
     }
+//    if ([marker isKindOfClass:[AIRMapMarker class]]) {
+//        marker.transform = CGAffineTransformMakeScale(0, 0);
+//        marker.enabled = false;
+//
+//        [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
+//            marker.transform = CGAffineTransformIdentity;
+//        } completion:^(BOOL finished){
+//            marker.enabled = true;
+//        }];
+//    }
 
     marker.map = mapView;
     return [marker getAnnotationView];

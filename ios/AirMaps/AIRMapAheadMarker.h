@@ -7,22 +7,23 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "AIRMapCallout.h"
-
 #import <MapKit/MapKit.h>
 #import <UIKit/UIKit.h>
 
 #import <React/RCTConvert+MapKit.h>
 #import <React/RCTComponent.h>
 #import "AIRMap.h"
-#import "SMCalloutView.h"
 
 @class RCTBridge;
 
-@interface AIRMapMarker : MKAnnotationView <MKAnnotation>
+@interface AIRMapAheadMarker : MKAnnotationView <MKAnnotation>
 
+struct ImportantStatus {
+    BOOL isImportant;
+    float unimportantOpacity;
+};
+typedef struct ImportantStatus ImportantStatus;
 
-@property (nonatomic, strong) AIRMapCallout *calloutView;
 @property (nonatomic, weak) AIRMap *map;
 @property (nonatomic, weak) RCTBridge *bridge;
 
@@ -33,29 +34,21 @@
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
-// TODO: Do something about this, its hacky
-@property (nonatomic, copy) NSString *dotColor;
+
+@property (nonatomic, assign) ImportantStatus importantStatus;
+@property (nonatomic, assign) float radius;
 
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) RCTDirectEventBlock onSelect;
 @property (nonatomic, copy) RCTDirectEventBlock onDeselect;
-@property (nonatomic, copy) RCTDirectEventBlock onCalloutPress;
 @property (nonatomic, copy) RCTDirectEventBlock onDragStart;
 @property (nonatomic, copy) RCTDirectEventBlock onDrag;
 @property (nonatomic, copy) RCTDirectEventBlock onDragEnd;
 
 
 - (MKAnnotationView *)getAnnotationView;
-- (void)fillCalloutView:(SMCalloutView *)calloutView;
-- (BOOL)shouldShowCalloutView;
-- (void)showCalloutView;
-- (void)hideCalloutView;
 - (BOOL)shouldUsePinView;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
-@end
-
-
-@interface AIREmptyCalloutBackgroundView : SMCalloutBackgroundView
 @end

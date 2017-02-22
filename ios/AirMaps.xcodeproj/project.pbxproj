@@ -23,11 +23,13 @@
 		1125B2E71C4AD3DA007D0023 /* RCTConvert+MoreMapKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 1125B2D91C4AD3DA007D0023 /* RCTConvert+MoreMapKit.m */; };
 		1125B2F21C4AD445007D0023 /* SMCalloutView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1125B2F11C4AD445007D0023 /* SMCalloutView.m */; };
 		9F34256E1E3F812200752582 /* NSString+Color.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F34256D1E3F812200752582 /* NSString+Color.m */; };
+		9F3779291E5D92CD00798E0C /* AIRMapAheadMarker.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */; };
 		9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */; };
 		9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */; };
 		9F7EA4DE1E5B0DEB00AFA5DA /* FBClusteringManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */; };
 		9F7EA4DF1E5B0DEB00AFA5DA /* FBQuadTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */; };
 		9F7EA4E01E5B0DEB00AFA5DA /* FBQuadTreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */; };
+		9FBB93E81E5DC83200BCF8AE /* AIRMapAheadMarkerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9FBB93E71E5DC83200BCF8AE /* AIRMapAheadMarkerManager.m */; };
 		DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */; };
 		DA6C263E1C9E324A0035349F /* AIRMapUrlTileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DA6C263D1C9E324A0035349F /* AIRMapUrlTileManager.m */; };
 /* End PBXBuildFile section */
@@ -78,6 +80,8 @@
 		11FA5C511C4A1296003AC2EE /* libAirMaps.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAirMaps.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F34256C1E3F812200752582 /* NSString+Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Color.h"; sourceTree = "<group>"; };
 		9F34256D1E3F812200752582 /* NSString+Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Color.m"; sourceTree = "<group>"; };
+		9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapAheadMarker.m; sourceTree = "<group>"; };
+		9F37792A1E5D92E500798E0C /* AIRMapAheadMarker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIRMapAheadMarker.h; sourceTree = "<group>"; };
 		9F3BA0021DF98AE50017D089 /* AIRMapUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUtilities.h; sourceTree = "<group>"; };
 		9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUtilities.m; sourceTree = "<group>"; };
 		9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
@@ -90,6 +94,8 @@
 		9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTree.m; sourceTree = "<group>"; };
 		9F7EA4DB1E5B0DEA00AFA5DA /* FBQuadTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBQuadTreeNode.h; sourceTree = "<group>"; };
 		9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBQuadTreeNode.m; sourceTree = "<group>"; };
+		9FBB93E61E5DC83200BCF8AE /* AIRMapAheadMarkerManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapAheadMarkerManager.h; sourceTree = "<group>"; };
+		9FBB93E71E5DC83200BCF8AE /* AIRMapAheadMarkerManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapAheadMarkerManager.m; sourceTree = "<group>"; };
 		DA6C26361C9E2AFE0035349F /* AIRMapUrlTile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUrlTile.h; sourceTree = "<group>"; };
 		DA6C26371C9E2AFE0035349F /* AIRMapUrlTile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUrlTile.m; sourceTree = "<group>"; };
 		DA6C263C1C9E324A0035349F /* AIRMapUrlTileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUrlTileManager.h; sourceTree = "<group>"; };
@@ -150,6 +156,10 @@
 				1125B2CC1C4AD3DA007D0023 /* AIRMapMarker.m */,
 				1125B2CD1C4AD3DA007D0023 /* AIRMapMarkerManager.h */,
 				1125B2CE1C4AD3DA007D0023 /* AIRMapMarkerManager.m */,
+				9F37792A1E5D92E500798E0C /* AIRMapAheadMarker.h */,
+				9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */,
+				9FBB93E61E5DC83200BCF8AE /* AIRMapAheadMarkerManager.h */,
+				9FBB93E71E5DC83200BCF8AE /* AIRMapAheadMarkerManager.m */,
 				1125B2CF1C4AD3DA007D0023 /* AIRMapPolygon.h */,
 				1125B2D01C4AD3DA007D0023 /* AIRMapPolygon.m */,
 				1125B2D11C4AD3DA007D0023 /* AIRMapPolygonManager.h */,
@@ -248,6 +258,8 @@
 				9F34256E1E3F812200752582 /* NSString+Color.m in Sources */,
 				1125B2E41C4AD3DA007D0023 /* AIRMapPolygonManager.m in Sources */,
 				1125B2DB1C4AD3DA007D0023 /* AIRMapCallout.m in Sources */,
+				9F3779291E5D92CD00798E0C /* AIRMapAheadMarker.m in Sources */,
+				9FBB93E81E5DC83200BCF8AE /* AIRMapAheadMarkerManager.m in Sources */,
 				1125B2E01C4AD3DA007D0023 /* AIRMapManager.m in Sources */,
 				1125B2E61C4AD3DA007D0023 /* AIRMapPolylineManager.m in Sources */,
 				1125B2DD1C4AD3DA007D0023 /* AIRMapCircle.m in Sources */,

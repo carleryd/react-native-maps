@@ -10,6 +10,7 @@ import {
   findNodeHandle,
 } from 'react-native';
 import MapMarker from './MapMarker';
+import MapAheadMarker from './MapAheadMarker';
 import MapPolyline from './MapPolyline';
 import MapPolygon from './MapPolygon';
 import MapCircle from './MapCircle';
@@ -671,6 +672,7 @@ const AIRMapLite = NativeModules.UIManager.AIRMapLite &&
   });
 
 MapView.Marker = MapMarker;
+MapView.AheadMarker = MapAheadMarker;
 MapView.Polyline = MapPolyline;
 MapView.Polygon = MapPolygon;
 MapView.Circle = MapCircle;

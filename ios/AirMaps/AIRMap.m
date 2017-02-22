@@ -12,6 +12,7 @@
 #import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 #import "AIRMapPolyline.h"
 #import "AIRMapPolygon.h"
 #import "AIRMapCircle.h"
@@ -110,6 +111,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 //        NSLog(@"REACT height %f width %f", m.frame.size.width, m.frame.size.width);
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
+    } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
+        NSLog(@"AHEADY MARKER!");
+        [self addAnnotation:(id<MKAnnotation>)subview];
+        [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
         [self addOverlay:(id<MKOverlay>)subview];
@@ -131,6 +136,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
+        [self removeAnnotation:(id<MKAnnotation>) subview];
+        [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
+    } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         [self removeAnnotation:(id<MKAnnotation>) subview];
         [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
@@ -223,7 +231,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
-        NSLog(@"ASDF marker.unimportantOpacity %f", marker.importantStatus.unimportantOpacity);
+//        NSLog(@"ASDF marker.unimportantOpacity %f", marker.importantStatus.unimportantOpacity);
         marker.alpha = 0.5;//marker.unimportantOpacity;
         [utilities setPrevPressedMarker:nil];
     }

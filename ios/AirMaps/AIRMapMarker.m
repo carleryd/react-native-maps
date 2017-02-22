@@ -289,26 +289,6 @@
     _dotColor = dotColor;
 }
 
-- (void)setRadius:(float)radius
-{
-    NSLog(@"set radius %f", radius);
-    _radius = radius;
-}
-
-//- (void)setImportantStatus:(ImportantStatus)importantStatus
-//{
-//    NSLog(@"ASDF setImportantStatus %@", importantStatus);
-//    NSLog(@"ASDF setImportantStatus %f", importantStatus.unimportantOpacity);
-//    
-//     _importantStatus = importantStatus;
-//    
-//    /**
-//     * Set the opacity of marker based on current important status
-//     */
-//
-//    //self.alpha = ()
-//}
-
 - (void)setPinColor:(UIColor *)pinColor
 {
     _pinColor = pinColor;
