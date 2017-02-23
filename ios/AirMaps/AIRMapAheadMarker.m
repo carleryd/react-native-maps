@@ -83,12 +83,21 @@
         _anView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
         _anView.annotation = self;
         _anView.draggable = self.draggable;
-        UIColor *color = [@"blue" representedColor];
-        UIImage *image = [AIRMapUtilities createCircleWithColor:color
-                                                  withImageURL:[self imageSrc]
-                                                    withRadius:[self radius]
-                          ];
-        _anView.image = image;
+        
+        NSURL *url = [NSURL URLWithString: [self imageSrc]];
+        UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-[self radius],
+                                                                               -[self radius],
+                                                                               [self radius]*2,
+                                                                               [self radius]*2)];
+        imageView.image = image;
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageView.clipsToBounds = YES;
+        imageView.layer.cornerRadius = [self radius];
+        imageView.layer.borderWidth = [self radius] * 0.1;
+        imageView.layer.borderColor = [[@"#039be5" representedColor] CGColor];
+        imageView.layer.masksToBounds = YES;
+        [_anView addSubview:imageView];
     }
     return _anView;
 }

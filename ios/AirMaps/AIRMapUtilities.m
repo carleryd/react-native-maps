@@ -2,6 +2,7 @@
 #import <Foundation/Foundation.h>
 #import "AIRMapUtilities.h"
 #import "AIRMapAheadMarker.h"
+#import "NSString+Color.h"
 
 @implementation AIRMapUtilities
 
@@ -40,15 +41,22 @@
     });
 }
 
-
-+ (UIImage *)createCircleWithColor:(UIColor *)color
++ (UIImage *)createMarkerCircleWithColor:(UIColor *)color
                       withImageURL:(UIImage *)imageURL
                         withRadius:(CGFloat)radius
 {
-    UIImage *circle = nil;
+    UIImage* circle = [self createCircleWithColor:color withRadius:radius];
     
     NSURL *url = [NSURL URLWithString: imageURL];
     UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
+
+    return circle;
+}
+
++ (UIImage *)createCircleWithColor:(UIColor *)color
+                        withRadius:(CGFloat)radius
+{
+    UIImage *circle = nil;
     
     // TODO: second argument is opaque, set it depending on isImportant
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(radius*2, radius*2), NO, 0.0f);
@@ -69,10 +77,9 @@
 + (UILabel *)createClusterIndicatorWithColor:(UIColor *)color
                          withAmountInCluster:(NSInteger)amount
                            usingMarkerRadius:(CGFloat)radius
-                           usingMarkerCenter:(CGPoint)center
                      withClusterIndicatorTag:(NSInteger)tag
 {
-    CGRect labelRect = CGRectMake(center.x + radius * 1.30, center.y - radius * 0.30, radius, radius);
+    CGRect labelRect = CGRectMake(radius * 0.20, -radius * 1.20, radius, radius);
     UILabel *labelView = [[UILabel alloc] initWithFrame:labelRect];
     labelView.tag = tag;
     [labelView setBackgroundColor:color];
@@ -80,6 +87,7 @@
     labelView.layer.cornerRadius = labelView.frame.size.width / 2;
     labelView.clipsToBounds = YES;
     [labelView setText:[NSString stringWithFormat:@"%lu", (unsigned long)amount]];
+    [labelView setTextColor:[@"white" representedColor]];
     [labelView setTextAlignment:NSTextAlignmentCenter];
     return labelView;
 }

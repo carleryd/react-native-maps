@@ -21,14 +21,16 @@
                  toAlpha:(double)a2
            afterDuration:(NSInteger)duration;
 
++ (UIImage *)createMarkerCircleWithColor:(UIColor *)color
+                            withImageURL:(UIImage *)imageURL
+                              withRadius:(CGFloat)radius;
+
 + (UIImage *)createCircleWithColor:(UIColor *)color
-                      withImageURL:(UIImage *)imageURL
                         withRadius:(CGFloat)radius;
 
 + (UILabel *)createClusterIndicatorWithColor:(UIColor *)color
                          withAmountInCluster:(NSInteger)amount
                            usingMarkerRadius:(CGFloat)radius
-                           usingMarkerCenter:(CGPoint)center
                      withClusterIndicatorTag:(NSInteger)clusterIndicatorTag;
 
 @end

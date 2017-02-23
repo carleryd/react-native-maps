@@ -527,10 +527,9 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
             }
         }
         
-        UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"red" representedColor]
+        UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
                                                           withAmountInCluster:cluster.annotations.count+1
                                                             usingMarkerRadius:[topMarker radius]
-                                                            usingMarkerCenter:[topMarker center]
                                                       withClusterIndicatorTag:clusterIndicatorTag
                               ];
 
