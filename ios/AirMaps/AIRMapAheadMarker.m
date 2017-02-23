@@ -20,9 +20,9 @@
 #define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0];
 
 
-@implementation AIRMapAheadMarker {
-    RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
+@implementation AIRMapAheadMarker { RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     MKPinAnnotationView *_pinView;
+    MKAnnotationView *_anView;
 }
 
 - (void)reactSetFrame:(CGRect)frame
@@ -59,7 +59,13 @@
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    if (CGRectContainsPoint(self.bounds, point)) {
+    CGPoint center = [[self map] convertCoordinate:[self coordinate] toPointToView:[self map]];
+    CGRect bounds = CGRectMake(center.x - [self radius],
+                               center.y - [self radius],
+                               [self radius] * 2,
+                               [self radius] * 2);
+    
+    if (CGRectContainsPoint(bounds, point)) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
         
         if ([utilities prevPressedMarker] != nil) {
@@ -73,73 +79,18 @@
 
 - (MKAnnotationView *)getAnnotationView
 {
-    if ([self shouldUsePinView]) {
-        // In this case, we want to render a platform "default" marker.
-        if (_pinView == nil) {
-            _pinView = [[MKPinAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
-            _pinView.annotation = self;
-        }
-        
-        _pinView.enabled = false;
-        _pinView.draggable = self.draggable;
-        _pinView.layer.zPosition = self.zIndex;
-        
-        // TODO(lmr): Looks like this API was introduces in iOS 8. We may want to handle differently for earlier
-        // versions. Right now it's just leaving it with the default color. People needing the colors are free to
-        // use their own custom markers.
-        if ([_pinView respondsToSelector:@selector(setPinTintColor:)]) {
-            _pinView.pinTintColor = self.pinColor;
-        }
-        
-        return _pinView;
-    } else {
-        // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.
-        // if it has a non-null image, it means we want to render a custom marker with the image.
-        // In either case, we want to return the AIRMapAheadMarker since it is both an MKAnnotation and an
-        // MKAnnotationView all at the same time.
-        self.layer.zPosition = self.zIndex;
-        return self;
+    if (_anView == nil) {
+        _anView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
+        _anView.annotation = self;
+        _anView.draggable = self.draggable;
+        UIColor *color = [@"blue" representedColor];
+        UIImage *image = [AIRMapUtilities createCircleWithColor:color
+                                                  withImageURL:[self imageSrc]
+                                                    withRadius:[self radius]
+                          ];
+        _anView.image = image;
     }
-}
-
-- (BOOL)shouldUsePinView
-{
-    return self.reactSubviews.count == 0 && !self.imageSrc;
-}
-
-- (void)setImageSrc:(NSString *)imageSrc
-{
-    _imageSrc = imageSrc;
-    
-    if (_reloadImageCancellationBlock) {
-        _reloadImageCancellationBlock();
-        _reloadImageCancellationBlock = nil;
-    }
-    _reloadImageCancellationBlock = [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:_imageSrc]
-                                                                            size:self.bounds.size
-                                                                           scale:RCTScreenScale()
-                                                                         clipped:YES
-                                                                      resizeMode:RCTResizeModeCenter
-                                                                   progressBlock:nil
-                                                                partialLoadBlock:nil
-                                                                 completionBlock:^(NSError *error, UIImage *image) {
-                                                                     if (error) {
-                                                                         // TODO(lmr): do something with the error?
-                                                                         NSLog(@"%@", error);
-                                                                     }
-                                                                     dispatch_async(dispatch_get_main_queue(), ^{
-                                                                         self.image = image;
-                                                                     });
-                                                                 }];
-}
-
-- (void)setPinColor:(UIColor *)pinColor
-{
-    _pinColor = pinColor;
-    
-    if ([_pinView respondsToSelector:@selector(setPinTintColor:)]) {
-        _pinView.pinTintColor = _pinColor;
-    }
+    return _anView;
 }
 
 - (void)setZIndex:(NSInteger)zIndex

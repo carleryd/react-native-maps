@@ -104,15 +104,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
          * Add the annotation both to the map, and to the clustering manager.
          * The clustering manager determines if the annotation should be clustered.
          */
-//        NSLog(@"REACT insertReactSubview %@ at index %i", subview, atIndex);
-//        NSLog(@"REACT subview", subview);
-//        AIRMapMarker *m = subview;
-//        MKAnnotationView *v = subview;
-//        NSLog(@"REACT height %f width %f", m.frame.size.width, m.frame.size.width);
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-        NSLog(@"AHEADY MARKER!");
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
@@ -180,10 +174,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    AIRMapMarker* marker = [utilities prevPressedMarker];
+    AIRMapAheadMarker* marker = [utilities prevPressedMarker];
     if (marker != nil) {
-//        NSLog(@"ASDF marker %@", marker.importantStatus);
-//        NSLog(@"ASDF marker %f", marker.importantStatus.unimportantOpacity);
         marker.alpha = 0.5;//marker.unimportantOpacity;
 
         UITouch *touch = [[event allTouches] anyObject];
@@ -218,7 +210,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    AIRMapMarker *marker = [utilities prevPressedMarker];
+    AIRMapAheadMarker *marker = [utilities prevPressedMarker];
 
     if ([utilities prevPressedMarker] != nil) {
         id markerPressEvent = @{

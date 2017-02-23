@@ -70,6 +70,13 @@
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    NSLog(@"AIRY bounds %f", [self bounds].size.height);
+    NSLog(@"AIRY bounds %f", [self bounds].size.width);
+    NSLog(@"AIRY bounds %f", [self bounds].origin.x);
+    NSLog(@"AIRY bounds %f", [self bounds].origin.y);
+    NSLog(@"AIRY point %f", point.x);
+    NSLog(@"AIRY point %f", point.y);
+
     if (CGRectContainsPoint(self.bounds, point)) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     
@@ -132,7 +139,7 @@
          * See https://github.com/nicolasgoutaland/NSString-Color
          */
         UIColor *color = [_dotColor representedColor];
-        annotationView.image = [self createCircle:color];
+        annotationView.image = [self createCircle:color];// TODO: Use function from AIRMapUtilities
         
         return annotationView;
     } else {

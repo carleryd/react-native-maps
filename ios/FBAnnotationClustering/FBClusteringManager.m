@@ -80,7 +80,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 
 - (void)addAnnotations:(NSArray *)annotations
 {
-    NSLog(@"CLUSTER adding annotation to clustering manager");
     if (!self.tree) {
         self.tree = [[FBQuadTree alloc] init];
     }
@@ -271,7 +270,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * If it has been covered by another marker, ignore it.
          */
         if ([coveredByA count] > 0) {
-            NSLog(@"MYCLUSTER cluster!!!");
             FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
             cluster.coordinate = [ma coordinate];
             cluster.annotations = coveredByA;
@@ -279,14 +277,11 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             [clusteredAnnotations addObject:cluster];
             [clusteredMarkers addObjectsFromArray:coveredByA];
         } else if ([clusteredMarkers member:ma] == false) {
-            NSLog(@"MYCLUSTER NOThing");
             [clusteredAnnotations addObject:ma];
         }
     }
-    NSLog(@"MYCLUSTER 1");
     [self.lock unlock];
     
-    NSLog(@"MYCLUSTER 2");
     return [NSArray arrayWithArray:clusteredAnnotations];
 }
 

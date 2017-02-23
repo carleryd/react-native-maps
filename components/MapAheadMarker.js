@@ -8,7 +8,6 @@ import {
   findNodeHandle,
 } from 'react-native';
 
-import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import decorateMapComponent, {
   SUPPORTED,
   USES_DEFAULT_IMPLEMENTATION,
@@ -43,10 +42,9 @@ const propTypes = {
   description: PropTypes.string,
 
   /**
-   * A custom image to be used as the marker's icon. Only local image resources are allowed to be
-   * used.
+   * Remote image URL.
    */
-  image: PropTypes.any,
+  imageSrc: PropTypes.string,
 
   /**
    * A replacement source for a default annotation.
@@ -262,19 +260,12 @@ class AheadMarker extends React.Component {
   }
 
   render() {
-    let image;
-    if (this.props.image) {
-      image = resolveAssetSource(this.props.image) || {};
-      image = image.uri;
-    }
-
     const AIRMapAheadMarker = this.getAirComponent();
 
     return (
       <AIRMapAheadMarker
         ref={ref => { this.marker = ref; }}
         {...this.props}
-        image={image}
         style={[styles.marker, this.props.style]}
       />
     );
