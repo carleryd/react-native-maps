@@ -176,7 +176,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapAheadMarker* marker = [utilities prevPressedMarker];
     if (marker != nil) {
-        marker.alpha = 0.5;//marker.unimportantOpacity;
+        CGFloat newAlpha = marker.importantStatus.unimportantOpacity/2;
+        [[marker getAnnotationView] setAlpha:newAlpha];
 
         UITouch *touch = [[event allTouches] anyObject];
         [utilities setTouchStartPos:[touch locationInView:touch.view]];
@@ -190,6 +191,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapAheadMarker* marker = [utilities prevPressedMarker];
 
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint touchLocation = [touch locationInView:self];
@@ -199,7 +201,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     double threshold = 30;
     if (diffX > threshold || diffY > threshold) {
-        utilities.prevPressedMarker.alpha = 1.0;
+        [[marker getAnnotationView] setAlpha:1.0];
         [utilities setPrevPressedMarker:nil];
     }
 }
@@ -223,8 +225,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                 };
 
         if (marker.onPress) marker.onPress(markerPressEvent);
-//        NSLog(@"ASDF marker.unimportantOpacity %f", marker.importantStatus.unimportantOpacity);
-        marker.alpha = 0.5;//marker.unimportantOpacity;
+        [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
         [utilities setPrevPressedMarker:nil];
     }
 }

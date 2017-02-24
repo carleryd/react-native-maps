@@ -65,11 +65,15 @@
                                [self radius] * 2,
                                [self radius] * 2);
     
-    if (CGRectContainsPoint(bounds, point)) {
+    if (CGRectContainsPoint(bounds, point) && [self hiddenByCluster] == NO) { // TODO: Hacky hiddenByCluster
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+        AIRMapAheadMarker *marker = [utilities prevPressedMarker];
         
         if ([utilities prevPressedMarker] != nil) {
-            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
+            CGFloat newAlpha = marker.importantStatus.isImportant == YES
+                ? 1.0
+                : marker.importantStatus.unimportantOpacity;
+            [[marker getAnnotationView] setAlpha:newAlpha];
         }
         
         [utilities setPrevPressedMarker:self];
@@ -97,8 +101,14 @@
         imageView.layer.borderWidth = [self radius] * 0.1;
         imageView.layer.borderColor = [[@"#039be5" representedColor] CGColor];
         imageView.layer.masksToBounds = YES;
+        
         [_anView addSubview:imageView];
     }
+    CGFloat alpha = (self.importantStatus.isImportant == YES)
+        ? 1.0
+        : self.importantStatus.unimportantOpacity;
+    [_anView setAlpha:alpha];
+        
     return _anView;
 }
 

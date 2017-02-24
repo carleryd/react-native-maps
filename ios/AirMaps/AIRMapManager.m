@@ -738,8 +738,10 @@ static int kDragCenterContext;
      */
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapAheadMarker* marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
-    float alpha = 1.0;//(marker.isImportant == YES) ? 1.0 : marker.unimportantOpacity;
-    [marker setAlpha:alpha];
+    float newAlpha = (marker.importantStatus.isImportant == YES)
+        ? 1.0
+        : marker.importantStatus.unimportantOpacity;
+    [[marker getAnnotationView] setAlpha:newAlpha];
     [utilities setPrevPressedMarker:nil];
 
     BOOL needZoom = NO;

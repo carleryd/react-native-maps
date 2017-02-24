@@ -204,14 +204,30 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     /**
      * Sort annotations based on radius.
      */
-    NSArray *sortedMarkers;
-    sortedMarkers = [annotations sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-        CGFloat first = [(AIRMapAheadMarker *)a radius];
-        CGFloat second = [(AIRMapAheadMarker *)b radius];
-        if (first > second) return (NSComparisonResult)NSOrderedAscending;
-        else if (first > second) return (NSComparisonResult)NSOrderedDescending;
+    NSArray *sortedAnnotations;
+    sortedAnnotations = [annotations sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        AIRMapAheadMarker *markerA = a;
+        AIRMapAheadMarker *markerB = b;
+        NSInteger largerThanMaxRadius = 1000;
+        NSInteger penaltyA = (markerA.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
+        NSInteger penaltyB = (markerB.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
+        CGFloat importanceA = [markerA radius] - penaltyA;
+        CGFloat importanceB = [markerB radius] - penaltyB;
+        if (importanceA > importanceB) return (NSComparisonResult)NSOrderedAscending;
+        else if (importanceB > importanceA) return (NSComparisonResult)NSOrderedDescending;
         return (NSComparisonResult)NSOrderedSame;
     }];
+    NSLog(@"fdsa #####################");
+    for (id annotation in sortedAnnotations) {
+        if ([annotation isKindOfClass:[AIRMapAheadMarker class]]) {
+            AIRMapAheadMarker *marker = annotation;
+            NSLog(@"fdsa radius %f important? %f", [marker radius], marker.importantStatus.isImportant);
+            [marker setHiddenByCluster:NO];
+        } else {
+            NSLog(@"fdsa something wrong");
+        }
+    }
+    NSLog(@"fdsa #####################");
     
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     CGFloat screenWidth = screenRect.size.width;
@@ -228,12 +244,13 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     /**
      * Beginning at head, look through list and check each annotation against the rest
      */
-    for (int a = 0; a < [annotations count]; ++a) {
+    for (int a = 0; a < [sortedAnnotations count]; ++a) {
         // If this marker is already clustered it is of no interest to us.
-        AIRMapAheadMarker *ma = [annotations objectAtIndex:a];
+        AIRMapAheadMarker *ma = [sortedAnnotations objectAtIndex:a];
         if ([clusteredMarkers containsObject:ma]) {
             continue;
-        }        NSMutableSet *coveredByA = [[NSMutableSet alloc] init];
+        }
+        NSMutableArray *coveredByA = [[NSMutableArray alloc] init];
         
         CGFloat latA = ma.coordinate.latitude;
         CGFloat lngA = ma.coordinate.longitude;
@@ -243,9 +260,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * MKMapPoint point is inside of MKMapRect rect.
          * Using rectsPointsPerPixelX we should be able to determine how far one marker is to another.
          */
-        for (int b = 0; b < [annotations count]; ++b) {
+        for (int b = 0; b < [sortedAnnotations count]; ++b) {
             // If this marker is already clustered it is of no interest to us.
-            AIRMapAheadMarker *mb = [annotations objectAtIndex:b];
+            AIRMapAheadMarker *mb = [sortedAnnotations objectAtIndex:b];
             if ([clusteredMarkers containsObject:mb]) continue;
             if (a != b) {
                 CGFloat latB = mb.coordinate.latitude;
@@ -261,6 +278,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                 
                 if (combinedRadius > pixelHypotenuse) {
                     [coveredByA addObject:mb];
+                    [mb setHiddenByCluster:YES];
                 }
             }
         }
