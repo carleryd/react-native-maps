@@ -215,13 +215,32 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         CGFloat importanceB = [markerB radius] - penaltyB;
         if (importanceA > importanceB) return (NSComparisonResult)NSOrderedAscending;
         else if (importanceB > importanceA) return (NSComparisonResult)NSOrderedDescending;
-        return (NSComparisonResult)NSOrderedSame;
+        /**
+         * We want to avoid NSOrderedSame to be returned because it can cause re-clustering to
+         * give different results with the same initial list of annotations which cause clusters
+         * to change places with only a slight move of the map.
+         */
+        else {
+            NSLog(@"fdsa previous inconsistency fixed");
+            BOOL greaterLatitude = markerA.coordinate.latitude > markerB.coordinate.latitude;
+            BOOL greaterLongitude = markerA.coordinate.longitude > markerB.coordinate.longitude;
+            if (greaterLatitude == YES || greaterLongitude == YES) {
+                return (NSComparisonResult)NSOrderedAscending;
+            } else {
+                NSLog(@"fdsa Warning: Clustering is possibly inconsistent");
+                return (NSComparisonResult)NSOrderedSame;
+            }
+        }
     }];
     NSLog(@"fdsa #####################");
     for (id annotation in sortedAnnotations) {
         if ([annotation isKindOfClass:[AIRMapAheadMarker class]]) {
             AIRMapAheadMarker *marker = annotation;
-            NSLog(@"fdsa radius %f important? %f", [marker radius], marker.importantStatus.isImportant);
+            NSLog(@"fdsa radius %f important? %i latitude %f longitude %f",
+                  [marker radius],
+                  marker.importantStatus.isImportant,
+                  marker.coordinate.latitude,
+                  marker.coordinate.longitude);
             [marker setHiddenByCluster:NO];
         } else {
             NSLog(@"fdsa something wrong");
