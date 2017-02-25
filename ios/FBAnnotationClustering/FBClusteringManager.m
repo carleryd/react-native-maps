@@ -10,6 +10,7 @@
 #import "FBQuadTree.h"
 #import "AIRMapMarker.h"
 #import "AIRMapAheadMarker.h"
+#import "AIRMapUtilities.h"
 
 static NSString * const kFBClusteringManagerLockName = @"co.infinum.clusteringLock";
 
@@ -221,13 +222,11 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * to change places with only a slight move of the map.
          */
         else {
-            NSLog(@"fdsa previous inconsistency fixed");
             BOOL greaterLatitude = markerA.coordinate.latitude > markerB.coordinate.latitude;
             BOOL greaterLongitude = markerA.coordinate.longitude > markerB.coordinate.longitude;
             if (greaterLatitude == YES || greaterLongitude == YES) {
                 return (NSComparisonResult)NSOrderedAscending;
             } else {
-                NSLog(@"fdsa Warning: Clustering is possibly inconsistent");
                 return (NSComparisonResult)NSOrderedSame;
             }
         }
@@ -353,9 +352,22 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
     [toRemove minusSet:after];
     
+    for (NSObject *rm in toRemove) {
+        BOOL exist = NO;
+        for (NSObject *add in toAdd) {
+            if ([add isEqual:rm] == YES) {
+                NSLog(@"aaaa STOP THE PRESSES!!!!!!!");
+            }
+        }
+    }
+    NSLog(@"aaaa ????????? %i", [toAdd intersectsSet:toRemove]);
+    
+    NSLog(@"aaaa FBClusteringManager adding %i amount of annotations to mapView", [toAdd count]);
+    NSLog(@"aaaa FBClusteringManager removing %i amount of annotations to mapView", [toRemove count]);
+    
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [mapView addAnnotations:[toAdd allObjects]];
-        [mapView removeAnnotations:[toRemove allObjects]];
+//        [mapView removeAnnotations:[toRemove allObjects]];
     }];
 }
 

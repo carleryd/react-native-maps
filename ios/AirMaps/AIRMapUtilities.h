@@ -10,12 +10,14 @@
     BOOL hasMovedRegion;
     
     dispatch_queue_t concurrentQueue;
+    NSOperationQueue *operationQueue;
 }
 @property (nonatomic, retain) NSString *someProperty;
 @property (nonatomic, retain) AIRMapAheadMarker *prevPressedMarker;
 @property (nonatomic, assign) BOOL hasMovedRegion;
 @property (nonatomic, assign) CGPoint touchStartPos;
 @property (nonatomic, retain) dispatch_queue_t concurrentQueue;
+@property (nonatomic, retain) NSOperationQueue *operationQueue;
 
 + (instancetype)sharedInstance;
 + (void)highlightOnTap:(UIView *)element withDuration:(NSInteger)duration toAlpha:(double)alpha;

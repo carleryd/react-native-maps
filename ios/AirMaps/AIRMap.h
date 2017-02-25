@@ -25,6 +25,7 @@ extern const CGFloat AIRMapZoomBoundBuffer;
 @property (nonatomic, strong) FBClusteringManager *clusteringManager;
 @property (nonatomic, strong) UIImageView *cacheImageView;
 @property (nonatomic, strong) UIView *loadingView;
+@property (nonatomic, strong) NSOperationQueue *nsOperationQueue;
 
 @property (nonatomic, assign) BOOL followUserLocation;
 @property (nonatomic, assign) BOOL hasStartedRendering;

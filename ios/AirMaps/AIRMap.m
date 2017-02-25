@@ -66,6 +66,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     if ((self = [super init])) {
         _hasStartedRendering = NO;
         _reactSubviews = [NSMutableArray new];
+        _nsOperationQueue = [[NSOperationQueue alloc] init];
 
         // Find Apple link label
         for (UIView *subview in self.subviews) {
@@ -111,17 +112,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         
         if (self.clusterMarkers) {
-            void (^triggerClustering)();
-            triggerClustering = ^void {
-                double scale = self.bounds.size.width / self.visibleMapRect.size.width;
-                NSArray *annotations = [self.clusteringManager clusteredAnnotationsWithinMapRect:self.visibleMapRect withZoomScale:scale];
-                
-                [self.clusteringManager displayAnnotations:annotations onMapView:self];
-            };
-            
-            AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-            utilities.concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-            dispatch_async(utilities.concurrentQueue, triggerClustering);
+            NSLog(@"1234 insertReactSubview");
+            [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
@@ -225,37 +217,33 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  * send markerPress to JS land and set to no active marker pressed.
  */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    AIRMapAheadMarker *marker = [utilities prevPressedMarker];
-
-    if ([utilities prevPressedMarker] != nil) {
-        id markerPressEvent = @{
-                                @"action": @"marker-press",
-                                @"id": marker.identifier ?: @"unknown",
-                                @"coordinate": @{
-                                        @"latitude": @(marker.coordinate.latitude),
-                                        @"longitude": @(marker.coordinate.longitude)
-                                        }
-                                };
-
-        if (marker.onPress) marker.onPress(markerPressEvent);
-        [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
-        [utilities setPrevPressedMarker:nil];
+    AIRMapAheadMarker *marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
+    if (marker != nil) {
+        [self triggerMarkerPressWithMarker:marker];
+        [[AIRMapUtilities sharedInstance] setPrevPressedMarker:nil];
         
         if (self.clusterMarkers) {
-            void (^triggerClustering)();
-            triggerClustering = ^void {
-                double scale = self.bounds.size.width / self.visibleMapRect.size.width;
-                NSArray *annotations = [self.clusteringManager clusteredAnnotationsWithinMapRect:self.visibleMapRect withZoomScale:scale];
-                
-                [self.clusteringManager displayAnnotations:annotations onMapView:self];
-            };
-            
-            AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-            utilities.concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-            dispatch_async(utilities.concurrentQueue, triggerClustering);
+            NSLog(@"1234 touchesEnd");
+            [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
     }
+}
+
+- (void) triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
+    id markerPressEvent = @{
+                            @"action": @"marker-press",
+                            @"id": marker.identifier ?: @"unknown",
+                            @"coordinate": @{
+                                    @"latitude": @(marker.coordinate.latitude),
+                                    @"longitude": @(marker.coordinate.longitude)
+                                    }
+                            };
+
+//    if (marker.onPress) marker.onPress(markerPressEvent);
+    [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
+    ImportantStatus newImportantStatus = [marker importantStatus];
+    newImportantStatus.isImportant = NO;
+    [marker setImportantStatus:newImportantStatus];
 }
 
 // Allow touches to be sent to our calloutview.
