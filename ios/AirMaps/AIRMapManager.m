@@ -698,12 +698,17 @@ static int kDragCenterContext;
      * If we use clustering, trigger cluster for new region.
      */
     if (mapView.clusterMarkers) {
-        [[NSOperationQueue new] addOperationWithBlock:^{
+        void (^triggerClustering)();
+        triggerClustering = ^void {
             double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
             NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect withZoomScale:scale];
             
             [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-        }];
+        };
+        
+        AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+        utilities.concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+        dispatch_async(utilities.concurrentQueue, triggerClustering);
     }
 }
 

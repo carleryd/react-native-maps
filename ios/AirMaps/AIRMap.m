@@ -109,6 +109,20 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
+        
+        if (self.clusterMarkers) {
+            void (^triggerClustering)();
+            triggerClustering = ^void {
+                double scale = self.bounds.size.width / self.visibleMapRect.size.width;
+                NSArray *annotations = [self.clusteringManager clusteredAnnotationsWithinMapRect:self.visibleMapRect withZoomScale:scale];
+                
+                [self.clusteringManager displayAnnotations:annotations onMapView:self];
+            };
+            
+            AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+            utilities.concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+            dispatch_async(utilities.concurrentQueue, triggerClustering);
+        }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
         [self addOverlay:(id<MKOverlay>)subview];
@@ -227,6 +241,20 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         if (marker.onPress) marker.onPress(markerPressEvent);
         [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
         [utilities setPrevPressedMarker:nil];
+        
+        if (self.clusterMarkers) {
+            void (^triggerClustering)();
+            triggerClustering = ^void {
+                double scale = self.bounds.size.width / self.visibleMapRect.size.width;
+                NSArray *annotations = [self.clusteringManager clusteredAnnotationsWithinMapRect:self.visibleMapRect withZoomScale:scale];
+                
+                [self.clusteringManager displayAnnotations:annotations onMapView:self];
+            };
+            
+            AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+            utilities.concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+            dispatch_async(utilities.concurrentQueue, triggerClustering);
+        }
     }
 }
 
