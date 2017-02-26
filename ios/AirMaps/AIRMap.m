@@ -112,7 +112,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         
         if (self.clusterMarkers) {
-            NSLog(@"1234 insertReactSubview");
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
@@ -223,7 +222,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [[AIRMapUtilities sharedInstance] setPrevPressedMarker:nil];
         
         if (self.clusterMarkers) {
-            NSLog(@"1234 touchesEnd");
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
     }
@@ -239,7 +237,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                     }
                             };
 
-//    if (marker.onPress) marker.onPress(markerPressEvent);
+    if (marker.onPress) marker.onPress(markerPressEvent);
     [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
     ImportantStatus newImportantStatus = [marker importantStatus];
     newImportantStatus.isImportant = NO;

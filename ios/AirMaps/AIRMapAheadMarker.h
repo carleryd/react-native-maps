@@ -38,6 +38,7 @@ typedef struct ImportantStatus ImportantStatus;
 @property (nonatomic, assign) ImportantStatus importantStatus;
 @property (nonatomic, assign) float radius;
 @property (nonatomic, assign) BOOL hiddenByCluster;
+@property (nonatomic, strong) NSMutableArray *coveringMarkers;
 
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;

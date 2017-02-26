@@ -512,40 +512,49 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
      */
     NSInteger clusterIndicatorTag = 1234;
     
-    if ([marker isKindOfClass:[FBAnnotationCluster class]]) {
-        FBAnnotationCluster *cluster = (FBAnnotationCluster *)marker;
+//    if ([marker isKindOfClass:[FBAnnotationCluster class]]) {
+//        FBAnnotationCluster *cluster = (FBAnnotationCluster *)marker;
+//        
+//        AIRMapAheadMarker *topMarker = [cluster topAnnotation];
+//        MKAnnotationView *anView = [topMarker getAnnotationView];
+//        
+//        /**
+//         * Remove any cluster indicators we had before.
+//         */
+//        for (UIView *subview in [anView subviews]) {
+//            if ([subview tag] == clusterIndicatorTag) {
+//                [subview removeFromSuperview];
+//            }
+//        }
+//        
+//        UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
+//                                                          withAmountInCluster:cluster.annotations.count+1
+//                                                            usingMarkerRadius:[topMarker radius]
+//                                                      withClusterIndicatorTag:clusterIndicatorTag
+//                              ];
+//
+//        [anView addSubview:labelView];
+//        
+//        return anView;
+    if ([marker isKindOfClass:[AIRMapAheadMarker class]]) {
+        marker.map = mapView;
         
-        AIRMapAheadMarker *topMarker = [cluster topAnnotation];
-        MKAnnotationView *anView = [topMarker getAnnotationView];
-        
-        /**
-         * Remove any cluster indicators we had before.
-         */
+        MKAnnotationView *anView = [marker getAnnotationView];
         for (UIView *subview in [anView subviews]) {
             if ([subview tag] == clusterIndicatorTag) {
                 [subview removeFromSuperview];
             }
         }
-        
-        UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
-                                                          withAmountInCluster:cluster.annotations.count+1
-                                                            usingMarkerRadius:[topMarker radius]
-                                                      withClusterIndicatorTag:clusterIndicatorTag
-                              ];
+        if (marker.coveringMarkers.count > 0) {
+            UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
+                                                              withAmountInCluster:marker.coveringMarkers.count+1
+                                                                usingMarkerRadius:[marker radius]
+                                                          withClusterIndicatorTag:clusterIndicatorTag
+                                  ];
 
-        [anView addSubview:labelView];
-        
-        return anView;
-    } else if ([marker isKindOfClass:[AIRMapAheadMarker class]]) {
-        marker.map = mapView;
-        /**
-         * If it is not a cluster, remove any existing subviews with cluster indicator.
-         */
-        for (UIView *subview in [[marker getAnnotationView] subviews]) {
-            if ([subview tag] == clusterIndicatorTag) {
-                [subview removeFromSuperview];
-            }
+            [anView addSubview:labelView];
         }
+        return anView;
     }
     
     // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
@@ -680,7 +689,7 @@ static int kDragCenterContext;
 
 - (void)mapView:(AIRMap *)mapView regionDidChangeAnimated:(__unused BOOL)animated
 {
-    NSLog(@"1234 delegate object AIRMapManager regionDidChangeAnimated");
+    // NSLog(@"1234 delegate object AIRMapManager regionDidChangeAnimated");
     [mapView.regionChangeObserveTimer invalidate];
     mapView.regionChangeObserveTimer = nil;
 
@@ -704,26 +713,26 @@ static int kDragCenterContext;
             double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
             NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect withZoomScale:scale];
         
-            NSLog(@"1234 regionDidChangeAnimated clustering amount %i", [annotations count]);
+            // NSLog(@"1234 regionDidChangeAnimated clustering amount %i", [annotations count]);
             
             [[NSOperationQueue mainQueue] addOperationWithBlock:^(void) {
                 [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-                NSLog(@"1234 clusteringManager annotation length %i", [[mapView.clusteringManager allAnnotations] count]);
+                // NSLog(@"1234 clusteringManager annotation length %i", [[mapView.clusteringManager allAnnotations] count]);
             }];
         };
         
         NSOperationQueue *q = [mapView nsOperationQueue];
-        if ([q operationCount] > 0) {
-            NSLog(@"1234 CANCEL IT ALL!!! %i", [q operationCount]);
-            [q cancelAllOperations];
-        }
+//        if ([q operationCount] > 0) {
+//            NSLog(@"1234 CANCEL IT ALL!!! %i", [q operationCount]);
+//            [q cancelAllOperations];
+//        }
         __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
         [q addOperation:operation];
         
-        NSLog(@"1234 Adding cluster operation to queue, amount in queue: %i max %i",
-              [[q operations] count],
-              [q maxConcurrentOperationCount]
-              );
+        // NSLog(@"1234 Adding cluster operation to queue, amount in queue: %i max %i",
+//              [[q operations] count],
+//              [q maxConcurrentOperationCount]
+//              );
 //        [operation start];
     }
 }

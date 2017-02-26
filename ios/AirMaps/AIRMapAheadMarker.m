@@ -25,6 +25,12 @@
     MKAnnotationView *_anView;
 }
 
+//- (id)init {
+//    self = [super init];
+//    self.coveringMarkers = [[NSMutableArray alloc] init];
+//    return self;
+//}
+
 - (void)reactSetFrame:(CGRect)frame
 {
     // Make sure we use the image size when available

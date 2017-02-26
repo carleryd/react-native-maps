@@ -11,6 +11,7 @@
 #import "AIRMapMarker.h"
 #import "AIRMapAheadMarker.h"
 #import "AIRMapUtilities.h"
+#import "NSString+Color.h"
 
 static NSString * const kFBClusteringManagerLockName = @"co.infinum.clusteringLock";
 
@@ -171,8 +172,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                 FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
                 cluster.coordinate = coordinate;
                 cluster.annotations = annotations;
-                // TODO REMOVE
-                cluster.topAnnotation = [annotations objectAtIndex:0];
                 [clusteredAnnotations addObject:cluster];
             }
         }
@@ -231,21 +230,21 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             }
         }
     }];
-    NSLog(@"fdsa #####################");
+    // NSLog(@"fdsa #####################");
     for (id annotation in sortedAnnotations) {
         if ([annotation isKindOfClass:[AIRMapAheadMarker class]]) {
             AIRMapAheadMarker *marker = annotation;
-            NSLog(@"fdsa radius %f important? %i latitude %f longitude %f",
-                  [marker radius],
-                  marker.importantStatus.isImportant,
-                  marker.coordinate.latitude,
-                  marker.coordinate.longitude);
+            // NSLog(@"fdsa radius %f important? %i latitude %f longitude %f",
+//                  [marker radius],
+//                  marker.importantStatus.isImportant,
+//                  marker.coordinate.latitude,
+//                  marker.coordinate.longitude);
             [marker setHiddenByCluster:NO];
         } else {
-            NSLog(@"fdsa something wrong");
+            // NSLog(@"fdsa something wrong");
         }
     }
-    NSLog(@"fdsa #####################");
+    // NSLog(@"fdsa #####################");
     
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     CGFloat screenWidth = screenRect.size.width;
@@ -305,14 +304,21 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * If it has not been a part of any clustering, simply add it.
          * If it has been covered by another marker, ignore it.
          */
+        // NSLog(@"zzzz clustering func coverAmount %i", [coveredByA count]);
         if ([coveredByA count] > 0) {
-            FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
-            cluster.coordinate = [ma coordinate];
-            cluster.annotations = coveredByA;
-            cluster.topAnnotation = ma;
-            [clusteredAnnotations addObject:cluster];
+//            FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
+//            cluster.coordinate = [ma coordinate];
+//            cluster.annotations = coveredByA; // contains ma??? should it?
+//            cluster.topAnnotation = ma;
+//            [clusteredAnnotations addObject:cluster];
+//            [clusteredAnnotations addObject:ma];
+            
+            [ma setCoveringMarkers:coveredByA];
+            [clusteredAnnotations addObject:ma];
             [clusteredMarkers addObjectsFromArray:coveredByA];
         } else if ([clusteredMarkers member:ma] == false) {
+//            [ma setCoveringMarkers:coveredByA];
+            [[ma coveringMarkers] removeAllObjects];
             [clusteredAnnotations addObject:ma];
         }
     }
@@ -336,39 +342,144 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 
 - (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        
     NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
+    NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
+    
     MKUserLocation *userLocation = [mapView userLocation];
     if (userLocation) {
         [before removeObject:userLocation];
     }
     NSSet *after = [NSSet setWithArray:annotations];
-    
+
     NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
     [toKeep intersectSet:after];
     
     NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
     [toAdd minusSet:toKeep];
-    
+
     NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
     [toRemove minusSet:after];
     
+//    NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
+    NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
+    NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
     for (NSObject *rm in toRemove) {
-        BOOL exist = NO;
+//        NSLog(@"aaaa %i rm", [rm isKindOfClass:[AIRMapAheadMarker class]]);
+        if ([rm isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
         for (NSObject *add in toAdd) {
-            if ([add isEqual:rm] == YES) {
-                NSLog(@"aaaa STOP THE PRESSES!!!!!!!");
+//            NSLog(@"aaaa %i add", [add isKindOfClass:[AIRMapAheadMarker class]]);
+            if ([add isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+            CGFloat latAndLngAdd = 0;
+            CGFloat latAndLngRm = 0;
+            
+            AIRMapAheadMarker *addMarker = add;
+            latAndLngAdd = addMarker.coordinate.latitude + addMarker.coordinate.longitude;
+            AIRMapAheadMarker *rmMarker = rm;
+            latAndLngRm = rmMarker.coordinate.latitude + rmMarker.coordinate.longitude;
+            
+            // NSLog(@"aaaa add %f rm %f", latAndLngAdd, latAndLngRm);
+            
+            if (latAndLngRm == latAndLngAdd) {
+                // NSLog(@"aaaa WE ARE ADDING AND REMOVING SAME ANNOTATION!!!");
+                [toNotAdd addObject:add];
+                [toNotRemove addObject:rm];
             }
         }
     }
-    NSLog(@"aaaa ????????? %i", [toAdd intersectsSet:toRemove]);
+
     
-    NSLog(@"aaaa FBClusteringManager adding %i amount of annotations to mapView", [toAdd count]);
-    NSLog(@"aaaa FBClusteringManager removing %i amount of annotations to mapView", [toRemove count]);
+    /**
+     * toAdd and toRemove contain too many annotations for some reason.
+     * We need to filter them further so that the same annotations are not removed and
+     * added here.
+     */
     
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [mapView addAnnotations:[toAdd allObjects]];
-//        [mapView removeAnnotations:[toRemove allObjects]];
+        [mapView removeAnnotations:[toRemove allObjects]];
+        
+        NSInteger clusterIndicatorTag = 1234;
+        for (AIRMapAheadMarker *marker in annotations) {
+            if ([marker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+            MKAnnotationView *anView = [marker getAnnotationView];
+            for (UIView *subview in [anView subviews]) {
+                if ([subview tag] == clusterIndicatorTag) {
+                    // NSLog(@"rrrr removing cluster tag");
+                    [subview removeFromSuperview];
+                }
+            }
+            if (marker.coveringMarkers.count > 0) {
+                // NSLog(@"rrrr adding cluster tag %i", marker.coveringMarkers.count);
+                UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
+                                                                  withAmountInCluster:marker.coveringMarkers.count+1
+                                                                    usingMarkerRadius:[marker radius]
+                                                              withClusterIndicatorTag:clusterIndicatorTag
+                                      ];
+                
+                [anView addSubview:labelView];
+            }
+        }
     }];
 }
 
 @end
+
+//
+//    NSLog(@"aaaa we want to not remove %i amount of annotations", [toNotRemove count]);
+//    NSLog(@"aaaa we want to not add %i amount of annotations", [toNotAdd count]);
+
+//    [toAdd minusSet:toKeep];
+//    [toAdd minusSet:toNotAdd];
+//    [toRemove minusSet:after];
+//    [toRemove minusSet:toNotRemove];
+
+//    NSLog(@"aaaa #############################");
+//    NSLog(@"aaaa FBClusteringManager removing %i amount of annotations to mapView", [toRemove count]);
+//    for (NSObject *rm in toRemove) {
+//        if ([rm isKindOfClass:[AIRMapAheadMarker class]]) {
+//            AIRMapAheadMarker *rmMarker = rm;
+//            NSLog(@"aaaa marker to be removed latitude %f longitude %f", rmMarker.coordinate.latitude, rmMarker.coordinate.longitude);
+//        } else if ([rm isKindOfClass:[FBAnnotationCluster class]]) {
+//            FBAnnotationCluster *rmCluster = rm;
+//            NSLog(@"aaaa cluster to be removed latitude %f longitude %f", rmCluster.coordinate.latitude, rmCluster.coordinate.longitude);
+//        }
+//    }
+//    NSLog(@"aaaa FBClusteringManager adding %i amount of annotations to mapView", [toAdd count]);
+//    for (NSObject *add in toAdd) {
+//        if ([add isKindOfClass:[AIRMapAheadMarker class]]) {
+//            AIRMapAheadMarker *addMarker = add;
+//            NSLog(@"aaaa marker to be added latitude %f longitude %f", addMarker.coordinate.latitude, addMarker.coordinate.longitude);
+//        } else if ([add isKindOfClass:[FBAnnotationCluster class]]) {
+//            FBAnnotationCluster *addCluster = add;
+//            NSLog(@"aaaa cluster to be added latitude %f longitude %f", addCluster.coordinate.latitude, addCluster.coordinate.longitude);
+//        }
+//    }
+//    NSLog(@"aaaa ????????? %i", [toAdd intersectsSet:toRemove]);
+
+
+
+
+
+
+
+
+//for (id oldAnno in [mapView annotations]) {
+//    if ([oldAnno isKindOfClass:[AIRMapAheadMarker class]]) {
+//        for (id newAnno in annotations) {
+//            if ([newAnno isKindOfClass:[AIRMapAheadMarker class]]) {
+//                AIRMapAheadMarker *oldMarker = oldAnno;
+//                AIRMapAheadMarker *newMarker = newAnno;
+//                
+//                NSLog(@"rrrr adding to changedAnnotations old coveramount %i new coveramount %i",
+//                      oldMarker.coveringMarkers.count,
+//                      newMarker.coveringMarkers.count);
+//                //                        if (oldMarker.coveringMarkers.count != newMarker.coveringMarkers.count) {
+//                //                        if (newMarker.coveringMarkers.count > 0) {
+//                [changedAnnotations addObject:newMarker];
+//                //                        }
+//            }
+//        }
+//    }
+//}
+//
