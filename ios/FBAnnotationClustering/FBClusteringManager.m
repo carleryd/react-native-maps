@@ -343,58 +343,58 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 - (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
+        NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
         
-    NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
-    NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
-    
-    MKUserLocation *userLocation = [mapView userLocation];
-    if (userLocation) {
-        [before removeObject:userLocation];
-    }
-    NSSet *after = [NSSet setWithArray:annotations];
+        MKUserLocation *userLocation = [mapView userLocation];
+        if (userLocation) {
+            [before removeObject:userLocation];
+        }
+        NSSet *after = [NSSet setWithArray:annotations];
+        NSLog(@"aaaa before size %i after size %i", [before count], [after count]);
 
-    NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
-    [toKeep intersectSet:after];
-    
-    NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
-    [toAdd minusSet:toKeep];
+        NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
+        [toKeep intersectSet:after];
+        
+        NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
+        [toAdd minusSet:toKeep];
 
-    NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
-    [toRemove minusSet:after];
-    
-//    NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
-    NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
-    NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
-    for (NSObject *rm in toRemove) {
-//        NSLog(@"aaaa %i rm", [rm isKindOfClass:[AIRMapAheadMarker class]]);
-        if ([rm isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-        for (NSObject *add in toAdd) {
-//            NSLog(@"aaaa %i add", [add isKindOfClass:[AIRMapAheadMarker class]]);
-            if ([add isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-            CGFloat latAndLngAdd = 0;
-            CGFloat latAndLngRm = 0;
-            
-            AIRMapAheadMarker *addMarker = add;
-            latAndLngAdd = addMarker.coordinate.latitude + addMarker.coordinate.longitude;
-            AIRMapAheadMarker *rmMarker = rm;
-            latAndLngRm = rmMarker.coordinate.latitude + rmMarker.coordinate.longitude;
-            
-            // NSLog(@"aaaa add %f rm %f", latAndLngAdd, latAndLngRm);
-            
-            if (latAndLngRm == latAndLngAdd) {
-                // NSLog(@"aaaa WE ARE ADDING AND REMOVING SAME ANNOTATION!!!");
-                [toNotAdd addObject:add];
-                [toNotRemove addObject:rm];
+        NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
+        [toRemove minusSet:after];
+        
+        NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
+        NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
+        NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
+        for (NSObject *rm in toRemove) {
+    //        NSLog(@"aaaa %i rm", [rm isKindOfClass:[AIRMapAheadMarker class]]);
+            if ([rm isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+            for (NSObject *add in toAdd) {
+    //            NSLog(@"aaaa %i add", [add isKindOfClass:[AIRMapAheadMarker class]]);
+                if ([add isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+                CGFloat latAndLngAdd = 0;
+                CGFloat latAndLngRm = 0;
+                
+                AIRMapAheadMarker *addMarker = add;
+                latAndLngAdd = addMarker.coordinate.latitude + addMarker.coordinate.longitude;
+                AIRMapAheadMarker *rmMarker = rm;
+                latAndLngRm = rmMarker.coordinate.latitude + rmMarker.coordinate.longitude;
+                
+                // NSLog(@"aaaa add %f rm %f", latAndLngAdd, latAndLngRm);
+                
+                if (latAndLngRm == latAndLngAdd) {
+                    // NSLog(@"aaaa WE ARE ADDING AND REMOVING SAME ANNOTATION!!!");
+                    [toNotAdd addObject:add];
+                    [toNotRemove addObject:rm];
+                }
             }
         }
-    }
 
-    
-    /**
-     * toAdd and toRemove contain too many annotations for some reason.
-     * We need to filter them further so that the same annotations are not removed and
-     * added here.
-     */
+        
+        /**
+         * toAdd and toRemove contain too many annotations for some reason.
+         * We need to filter them further so that the same annotations are not removed and
+         * added here.
+         */
     
         [mapView addAnnotations:[toAdd allObjects]];
         [mapView removeAnnotations:[toRemove allObjects]];

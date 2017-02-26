@@ -715,17 +715,17 @@ static int kDragCenterContext;
         
             // NSLog(@"1234 regionDidChangeAnimated clustering amount %i", [annotations count]);
             
-            [[NSOperationQueue mainQueue] addOperationWithBlock:^(void) {
-                [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
+//            [[NSOperationQueue mainQueue] addOperationWithBlock:^(void) {
+            [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
                 // NSLog(@"1234 clusteringManager annotation length %i", [[mapView.clusteringManager allAnnotations] count]);
-            }];
+//            }];
         };
         
         NSOperationQueue *q = [mapView nsOperationQueue];
-//        if ([q operationCount] > 0) {
-//            NSLog(@"1234 CANCEL IT ALL!!! %i", [q operationCount]);
-//            [q cancelAllOperations];
-//        }
+        if ([q operationCount] > 0) {
+            NSLog(@"1234 CANCEL IT ALL!!! %i", [q operationCount]);
+            [q cancelAllOperations];
+        }
         __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
         [q addOperation:operation];
         
