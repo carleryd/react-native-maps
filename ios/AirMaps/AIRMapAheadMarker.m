@@ -105,7 +105,7 @@
         imageView.clipsToBounds = YES;
         imageView.layer.cornerRadius = [self radius];
         imageView.layer.borderWidth = [self radius] * 0.1;
-        imageView.layer.borderColor = [[@"#039be5" representedColor] CGColor];
+        imageView.layer.borderColor = [[[self borderColor] representedColor] CGColor];
         imageView.layer.masksToBounds = YES;
         
         [_anView addSubview:imageView];

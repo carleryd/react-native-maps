@@ -37,6 +37,16 @@ typedef struct ImportantStatus ImportantStatus;
 
 @property (nonatomic, assign) ImportantStatus importantStatus;
 @property (nonatomic, assign) float radius;
+/**
+ * TODO: Is it possible to set this as UIColor directly using representedColor func?
+ */
+@property (nonatomic, assign) NSString *borderColor;
+
+/**
+ * These properties are part of the clustering logic.
+ * hiddenByCluster - Describes whether this marker is covered by a cluster.
+ * coveringMarkers - An array of markers that this marker is covering.
+ */
 @property (nonatomic, assign) BOOL hiddenByCluster;
 @property (nonatomic, strong) NSMutableArray *coveringMarkers;
 
