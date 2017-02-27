@@ -34,6 +34,7 @@
 @property (nonatomic, copy) NSString *dotColor;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
+@property (nonatomic, assign) double opacity;
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) RCTDirectEventBlock onSelect;
@@ -49,8 +50,9 @@
 - (BOOL)shouldShowCalloutView;
 - (void)showCalloutView;
 - (void)hideCalloutView;
-- (BOOL)shouldUsePinView;
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
+- (BOOL)shouldUsePinView; // TODO: Remove?
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event; // TODO: Remove?
+- (void)addTapGestureRecognizer;
 
 @end
 
