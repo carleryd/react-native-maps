@@ -94,7 +94,7 @@
         _anView.annotation = self;
         _anView.draggable = self.draggable;
         _anView.layer.zPosition = self.zIndex;
-        
+
         
         NSURL *url = [NSURL URLWithString: [self imageSrc]];
         UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];

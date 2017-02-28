@@ -192,33 +192,28 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
      * Get all annotations in current region.
      */
     FBBoundingBox mapBox = FBBoundingBoxForMapRect(rect);
-    NSMutableArray *annotations = [[NSMutableArray alloc] init];
+    NSMutableArray *aheadMarkers = [[NSMutableArray alloc] init];
 
     /**
      * Iterate through found annotations in current region and add them to 'annotations'.
      */
     [self.tree enumerateAnnotationsInBox:mapBox usingBlock:^(id<MKAnnotation> obj) {
-        [annotations addObject:obj];
-    }];
-    
-    /**
-     * Removing any occurence of AIRMapMarker because we do not want these to be clustered.
-     */
-    int i;
-    NSMutableArray *toBeRemoved = [[NSMutableArray alloc] init];
-    for (i = 0; i < [annotations count]; ++i) {
-        if ([[annotations objectAtIndex:i] isKindOfClass:[AIRMapMarker class]]) {
-            [clusteredAnnotations addObject:[annotations objectAtIndex:i]];
-            [toBeRemoved addObject:[annotations objectAtIndex:i]];
+        /**
+         * In case we have any other markers than AIRMapAheadMarkers we want to dismiss these
+         * when calculating clustering and instead just add them directly.
+         */
+        if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+            [aheadMarkers addObject:obj];
+        } else {
+            [clusteredAnnotations addObject:obj];
         }
-    }
-    [annotations removeObjectsInArray:toBeRemoved];
+    }];
     
     /**
      * Sort annotations based on radius.
      */
-    NSArray *sortedAnnotations;
-    sortedAnnotations = [annotations sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+    NSArray *sortedAheadMarkers;
+    sortedAheadMarkers = [aheadMarkers sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
         AIRMapAheadMarker *markerA = a;
         AIRMapAheadMarker *markerB = b;
         NSInteger largerThanMaxRadius = 1000;
@@ -243,21 +238,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             }
         }
     }];
-    // NSLog(@"fdsa #####################");
-    for (id annotation in sortedAnnotations) {
-        if ([annotation isKindOfClass:[AIRMapAheadMarker class]]) {
-            AIRMapAheadMarker *marker = annotation;
-            // NSLog(@"fdsa radius %f important? %i latitude %f longitude %f",
-//                  [marker radius],
-//                  marker.importantStatus.isImportant,
-//                  marker.coordinate.latitude,
-//                  marker.coordinate.longitude);
-            [marker setHiddenByCluster:NO];
-        } else {
-            // NSLog(@"fdsa something wrong");
-        }
+    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
+        [marker setHiddenByCluster:NO];
     }
-    // NSLog(@"fdsa #####################");
     
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     CGFloat screenWidth = screenRect.size.width;
@@ -274,9 +257,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     /**
      * Beginning at head, look through list and check each annotation against the rest
      */
-    for (int a = 0; a < [sortedAnnotations count]; ++a) {
+    for (int a = 0; a < [aheadMarkers count]; ++a) {
         // If this marker is already clustered it is of no interest to us.
-        AIRMapAheadMarker *ma = [sortedAnnotations objectAtIndex:a];
+        AIRMapAheadMarker *ma = [aheadMarkers objectAtIndex:a];
         if ([clusteredMarkers containsObject:ma]) {
             continue;
         }
@@ -290,10 +273,10 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * MKMapPoint point is inside of MKMapRect rect.
          * Using rectsPointsPerPixelX we should be able to determine how far one marker is to another.
          */
-        for (int b = 0; b < [sortedAnnotations count]; ++b) {
+        for (int b = 0; b < [aheadMarkers count]; ++b) {
             if (a >= b) continue;
             // If this marker is already clustered it is of no interest to us.
-            AIRMapAheadMarker *mb = [sortedAnnotations objectAtIndex:b];
+            AIRMapAheadMarker *mb = [aheadMarkers objectAtIndex:b];
             if ([clusteredMarkers containsObject:mb]) continue;
             if (a != b) {
                 CGFloat latB = mb.coordinate.latitude;
@@ -318,23 +301,11 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * If it has not been a part of any clustering, simply add it.
          * If it has been covered by another marker, ignore it.
          */
-        // NSLog(@"zzzz clustering func coverAmount %i", [coveredByA count]);
         if ([coveredByA count] > 0) {
-//            FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
-//            cluster.coordinate = [ma coordinate];
-//            cluster.annotations = coveredByA; // contains ma??? should it?
-//            cluster.topAnnotation = ma;
-//            [clusteredAnnotations addObject:cluster];
-//            [clusteredAnnotations addObject:ma];
-            
-            NSLog(@"rrrr setting coveringMarkers %i", [coveredByA count]);
             [ma setCoveringMarkers:coveredByA];
             [clusteredAnnotations addObject:ma];
             [clusteredMarkers addObjectsFromArray:coveredByA];
         } else if ([clusteredMarkers member:ma] == false) {
-            NSLog(@"rrrr removing coveringMarkers %i", [[ma coveringMarkers] count]);
-            
-//            [ma setCoveringMarkers:coveredByA];
             [[ma coveringMarkers] removeAllObjects];
             [clusteredAnnotations addObject:ma];
         }
