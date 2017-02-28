@@ -13,6 +13,7 @@
 #import <React/RCTConvert+MapKit.h>
 #import <React/RCTComponent.h>
 #import "SMCalloutView.h"
+#import "FBClusteringManager.h"
 
 extern const CLLocationDegrees AIRMapDefaultSpan;
 extern const NSTimeInterval AIRMapRegionChangeObserveInterval;
@@ -21,8 +22,10 @@ extern const CGFloat AIRMapZoomBoundBuffer;
 @interface AIRMap: MKMapView<SMCalloutViewDelegate>
 
 @property (nonatomic, strong) SMCalloutView *calloutView;
+@property (nonatomic, strong) FBClusteringManager *clusteringManager;
 @property (nonatomic, strong) UIImageView *cacheImageView;
 @property (nonatomic, strong) UIView *loadingView;
+@property (nonatomic, strong) NSOperationQueue *nsOperationQueue;
 
 @property (nonatomic, assign) BOOL followUserLocation;
 @property (nonatomic, assign) BOOL hasStartedRendering;
@@ -42,6 +45,7 @@ extern const CGFloat AIRMapZoomBoundBuffer;
 
 
 @property (nonatomic, assign) BOOL ignoreRegionChanges;
+@property (nonatomic, assign) BOOL clusterMarkers;
 
 @property (nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;

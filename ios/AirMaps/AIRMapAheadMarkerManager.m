@@ -7,26 +7,29 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "AIRMapMarkerManager.h"
+#import "AIRMapAheadMarkerManager.h"
 
 #import <React/RCTConvert+CoreLocation.h>
 #import "RCTConvert+MoreMapKit.h"
 #import <React/RCTUIManager.h>
 #import <React/UIView+React.h>
-#import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 
-@interface AIRMapMarkerManager () <MKMapViewDelegate>
+@interface AIRMapAheadMarkerManager () <MKMapViewDelegate>
 
 @end
 
-@implementation AIRMapMarkerManager
+@implementation AIRMapAheadMarkerManager
 
 RCT_EXPORT_MODULE()
 
 - (UIView *)view
 {
-    AIRMapMarker *marker = [AIRMapMarker new];
-    [marker addTapGestureRecognizer];
+    AIRMapAheadMarker *marker = [AIRMapAheadMarker new];
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleTap:)];
+    // setting this to NO allows the parent MapView to continue receiving marker selection events
+    tapGestureRecognizer.cancelsTouchesInView = NO;
+    [marker addGestureRecognizer:tapGestureRecognizer];
     marker.bridge = self.bridge;
     return marker;
 }
@@ -37,51 +40,43 @@ RCT_EXPORT_VIEW_PROPERTY(title, NSString)
 RCT_REMAP_VIEW_PROPERTY(description, subtitle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(coordinate, CLLocationCoordinate2D)
 RCT_EXPORT_VIEW_PROPERTY(centerOffset, CGPoint)
-RCT_EXPORT_VIEW_PROPERTY(calloutOffset, CGPoint)
-RCT_REMAP_VIEW_PROPERTY(image, imageSrc, NSString)
+RCT_EXPORT_VIEW_PROPERTY(imageSrc, NSString)
 RCT_EXPORT_VIEW_PROPERTY(pinColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
-RCT_EXPORT_VIEW_PROPERTY(opacity, double)
-// TODO: Do something about this, its hacky
-RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
 /**
  * TODO: Move to subclass AheadMarker
  */
 RCT_EXPORT_VIEW_PROPERTY(importantStatus, ImportantStatus)
 RCT_EXPORT_VIEW_PROPERTY(radius, float)
+RCT_EXPORT_VIEW_PROPERTY(borderColor, NSString)
 
 
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSelect, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDeselect, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onCalloutPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDrag, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragEnd, RCTDirectEventBlock)
 
-RCT_EXPORT_METHOD(showCallout:(nonnull NSNumber *)reactTag)
-{
-    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        id view = viewRegistry[reactTag];
-        if (![view isKindOfClass:[AIRMapMarker class]]) {
-            RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
-        } else {
-            [(AIRMapMarker *) view showCalloutView];
-        }
-    }];
-}
+#pragma mark - Events
 
-RCT_EXPORT_METHOD(hideCallout:(nonnull NSNumber *)reactTag)
-{
-    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        id view = viewRegistry[reactTag];
-        if (![view isKindOfClass:[AIRMapMarker class]]) {
-            RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
-        } else {
-            [(AIRMapMarker *) view hideCalloutView];
-        }
-    }];
+- (void)_handleTap:(UITapGestureRecognizer *)recognizer {
+    AIRMapAheadMarker *marker = (AIRMapAheadMarker *)recognizer.view;
+    if (!marker) return;
+    
+    // the actual marker got clicked
+    id event = @{
+                 @"action": @"marker-press",
+                 @"id": marker.identifier ?: @"unknown",
+                 @"coordinate": @{
+                         @"latitude": @(marker.coordinate.latitude),
+                         @"longitude": @(marker.coordinate.longitude)
+                         }
+                 };
+    
+    if (marker.onPress) marker.onPress(event);
+    if (marker.map.onMarkerPress) marker.map.onMarkerPress(event);
 }
 
 @end

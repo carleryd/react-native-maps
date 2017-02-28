@@ -8,14 +8,13 @@ import {
   findNodeHandle,
 } from 'react-native';
 
-import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import decorateMapComponent, {
   SUPPORTED,
   USES_DEFAULT_IMPLEMENTATION,
 } from './decorateMapComponent';
 
 const viewConfig = {
-  uiViewClassName: 'AIR<provider>MapMarker',
+  uiViewClassName: 'AIR<provider>AheadMarker', // TODO: Don't support google
   validAttributes: {
     coordinate: true,
   },
@@ -43,10 +42,9 @@ const propTypes = {
   description: PropTypes.string,
 
   /**
-   * A custom image to be used as the marker's icon. Only local image resources are allowed to be
-   * used.
+   * Remote image URL.
    */
-  image: PropTypes.any,
+  imageSrc: PropTypes.string,
 
   /**
    * A replacement source for a default annotation.
@@ -54,13 +52,7 @@ const propTypes = {
   dotColor: PropTypes.string,
 
   /**
-   * Opacity level of view/image based markers
-   */
-  opacity: PropTypes.number,
-
-  /**
-   * Information about the importance of this marker. This is used to determine clustering and
-   * appearence of a marker.
+   * TODO
    */
   importantStatus: PropTypes.shape({
       isImportant: PropTypes.bool,
@@ -68,7 +60,7 @@ const propTypes = {
   }),
 
   /**
-   * Used to calculate clustering and size of marker.
+   * Need in order to calculate clustering.
    */
   radius: PropTypes.number,
 
@@ -228,16 +220,12 @@ const defaultProps = {
   onPress() {},
 };
 
-class MapMarker extends React.Component {
+class AheadMarker extends React.Component {
   constructor(props) {
     super(props);
 
     this.showCallout = this.showCallout.bind(this);
     this.hideCallout = this.hideCallout.bind(this);
-  }
-
-  setNativeProps(props) {
-    this.marker.setNativeProps(props);
   }
 
   showCallout() {
@@ -272,28 +260,21 @@ class MapMarker extends React.Component {
   }
 
   render() {
-    let image;
-    if (this.props.image) {
-      image = resolveAssetSource(this.props.image) || {};
-      image = image.uri;
-    }
-
-    const AIRMapMarker = this.getAirComponent();
+    const AIRMapAheadMarker = this.getAirComponent();
 
     return (
-      <AIRMapMarker
+      <AIRMapAheadMarker
         ref={ref => { this.marker = ref; }}
         {...this.props}
-        image={image}
         style={[styles.marker, this.props.style]}
       />
     );
   }
 }
 
-MapMarker.propTypes = propTypes;
-MapMarker.defaultProps = defaultProps;
-MapMarker.viewConfig = viewConfig;
+AheadMarker.propTypes = propTypes;
+AheadMarker.defaultProps = defaultProps;
+AheadMarker.viewConfig = viewConfig;
 
 const styles = StyleSheet.create({
   marker: {
@@ -302,10 +283,10 @@ const styles = StyleSheet.create({
   },
 });
 
-MapMarker.Animated = Animated.createAnimatedComponent(MapMarker);
+AheadMarker.Animated = Animated.createAnimatedComponent(AheadMarker);
 
-module.exports = decorateMapComponent(MapMarker, {
-  componentType: 'Marker',
+module.exports = decorateMapComponent(AheadMarker, {
+  componentType: 'AheadMarker',
   providers: {
     google: {
       ios: SUPPORTED,
@@ -313,3 +294,4 @@ module.exports = decorateMapComponent(MapMarker, {
     },
   },
 });
+

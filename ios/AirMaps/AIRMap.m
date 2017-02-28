@@ -12,6 +12,7 @@
 #import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
+#import "AIRMapAheadMarker.h"
 #import "AIRMapPolyline.h"
 #import "AIRMapPolygon.h"
 #import "AIRMapCircle.h"
@@ -65,6 +66,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     if ((self = [super init])) {
         _hasStartedRendering = NO;
         _reactSubviews = [NSMutableArray new];
+        _nsOperationQueue = [[NSOperationQueue alloc] init];
 
         // Find Apple link label
         for (UIView *subview in self.subviews) {
@@ -80,6 +82,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         // be identical to the built-in callout view (which has a private API)
         self.calloutView = [SMCalloutView platformCalloutView];
         self.calloutView.delegate = self;
+        
+        // clusteringManager handles the clustering of markers.
+        // We init it here so that we can add markers to it, at the same time as we add them to the map
+        self.clusteringManager = [[FBClusteringManager alloc] init];
     }
     return self;
 }
@@ -95,7 +101,31 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // Our desired API is to pass up markers/overlays as children to the mapview component.
     // This is where we intercept them and do the appropriate underlying mapview action.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        [self addAnnotation:(id <MKAnnotation>) subview];
+        /**
+         * Add the annotation both to the map, and to the clustering manager.
+         * The clustering manager determines if the annotation should be clustered.
+         */
+        [self addAnnotation:(id<MKAnnotation>)subview];
+        [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
+    } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
+//        [self addAnnotation:(id<MKAnnotation>)subview];
+        
+        /**
+         * Check if already exists before adding it.
+         * Unless we stop this from happning, a bunch of markers get added and then
+         * removed right after, causing marker blink glitches.
+         */
+        AIRMapAheadMarker *marker = subview;
+        if ([self.clusteringManager.allAnnotations containsObject:marker] == NO) {
+            NSLog(@"aaaa ADDING MARKER TO CLUSTER");
+            [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
+        } else {
+            NSLog(@"aaaa cluster already contains marker!");
+        }
+        
+        if (self.clusterMarkers) {
+            [[self delegate] mapView:self regionDidChangeAnimated:NO];
+        }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
         [self addOverlay:(id<MKOverlay>)subview];
@@ -124,6 +154,17 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
         [self removeAnnotation:(id<MKAnnotation>) subview];
+        [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
+    } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
+//        [self removeAnnotation:(id<MKAnnotation>) subview];
+        
+        AIRMapAheadMarker *marker = subview;
+        NSLog(@"aaaa REMOVING MARKER FROM CLUSTER");
+        [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
+        
+        if (self.clusterMarkers) {
+            [[self delegate] mapView:self regionDidChangeAnimated:NO];
+        }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
@@ -168,8 +209,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    if ([utilities prevPressedMarker] != nil) {
-        utilities.prevPressedMarker.alpha = 0.5;
+    AIRMapAheadMarker* marker = [utilities prevPressedMarker];
+    if (marker != nil) {
+        CGFloat newAlpha = marker.importantStatus.unimportantOpacity/2;
+        [[marker getAnnotationView] setAlpha:newAlpha];
 
         UITouch *touch = [[event allTouches] anyObject];
         [utilities setTouchStartPos:[touch locationInView:touch.view]];
@@ -183,6 +226,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  */
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapAheadMarker* marker = [utilities prevPressedMarker];
 
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint touchLocation = [touch locationInView:self];
@@ -192,7 +236,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     double threshold = 30;
     if (diffX > threshold || diffY > threshold) {
-        utilities.prevPressedMarker.alpha = 1.0;
+        [[marker getAnnotationView] setAlpha:1.0];
         [utilities setPrevPressedMarker:nil];
     }
 }
@@ -202,23 +246,32 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  * send markerPress to JS land and set to no active marker pressed.
  */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    AIRMapMarker *marker = [utilities prevPressedMarker];
-
-    if ([utilities prevPressedMarker] != nil) {
-        id markerPressEvent = @{
-                                @"action": @"marker-press",
-                                @"id": marker.identifier ?: @"unknown",
-                                @"coordinate": @{
-                                        @"latitude": @(marker.coordinate.latitude),
-                                        @"longitude": @(marker.coordinate.longitude)
-                                        }
-                                };
-
-        if (marker.onPress) marker.onPress(markerPressEvent);
-        marker.alpha = 0.5;
-        [utilities setPrevPressedMarker:nil];
+    AIRMapAheadMarker *marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
+    if (marker != nil) {
+        [self triggerMarkerPressWithMarker:marker];
+        [[AIRMapUtilities sharedInstance] setPrevPressedMarker:nil];
+        
+        if (self.clusterMarkers) {
+            [[self delegate] mapView:self regionDidChangeAnimated:NO];
+        }
     }
+}
+
+- (void) triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
+    id markerPressEvent = @{
+                            @"action": @"marker-press",
+                            @"id": marker.identifier ?: @"unknown",
+                            @"coordinate": @{
+                                    @"latitude": @(marker.coordinate.latitude),
+                                    @"longitude": @(marker.coordinate.longitude)
+                                    }
+                            };
+
+    if (marker.onPress) marker.onPress(markerPressEvent);
+    [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
+    ImportantStatus newImportantStatus = [marker importantStatus];
+    newImportantStatus.isImportant = NO;
+    [marker setImportantStatus:newImportantStatus];
 }
 
 // Allow touches to be sent to our calloutview.

@@ -10,6 +10,7 @@ import {
   findNodeHandle,
 } from 'react-native';
 import MapMarker from './MapMarker';
+import MapAheadMarker from './MapAheadMarker';
 import MapPolyline from './MapPolyline';
 import MapPolygon from './MapPolygon';
 import MapCircle from './MapCircle';
@@ -166,6 +167,13 @@ const propTypes = {
    *
    */
   scrollEnabled: PropTypes.bool,
+
+  /**
+   * If `true` markers are clustered together once they start to overlap.
+   * Default value is `false`.
+   *
+   */
+  clusterMarkers: PropTypes.bool,
 
   /**
    * If `false` the user won't be able to adjust the camera’s pitch angle.
@@ -662,6 +670,7 @@ const AIRMapLite = NativeModules.UIManager.AIRMapLite &&
   });
 
 MapView.Marker = MapMarker;
+MapView.AheadMarker = MapAheadMarker;
 MapView.Polyline = MapPolyline;
 MapView.Polygon = MapPolygon;
 MapView.Circle = MapCircle;
