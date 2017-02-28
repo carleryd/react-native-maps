@@ -504,63 +504,42 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
     }
 }
 
-- (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(AIRMapAheadMarker *)marker
+- (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(MKAnnotationView *)anView
 {
     /**
      * If our marker is a cluster, i.e. the FBAnnotationClustering code has done what???
      * Note: It seems that the marker is modified, and without this if the app crashes.
      */
     NSInteger clusterIndicatorTag = 1234;
-    
-//    if ([marker isKindOfClass:[FBAnnotationCluster class]]) {
-//        FBAnnotationCluster *cluster = (FBAnnotationCluster *)marker;
-//        
-//        AIRMapAheadMarker *topMarker = [cluster topAnnotation];
-//        MKAnnotationView *anView = [topMarker getAnnotationView];
-//        
-//        /**
-//         * Remove any cluster indicators we had before.
-//         */
-//        for (UIView *subview in [anView subviews]) {
+    if ([anView isKindOfClass:[AIRMapAheadMarker class]]) {
+        AIRMapAheadMarker *aheadMarker = anView;
+        aheadMarker.map = mapView;
+        
+        MKAnnotationView *aheadAnView = [aheadMarker getAnnotationView];
+//        for (UIView *subview in [aheadAnView subviews]) {
 //            if ([subview tag] == clusterIndicatorTag) {
 //                [subview removeFromSuperview];
 //            }
 //        }
-//        
-//        UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
-//                                                          withAmountInCluster:cluster.annotations.count+1
-//                                                            usingMarkerRadius:[topMarker radius]
-//                                                      withClusterIndicatorTag:clusterIndicatorTag
-//                              ];
-//
-//        [anView addSubview:labelView];
-//        
-//        return anView;
-    if ([marker isKindOfClass:[AIRMapAheadMarker class]]) {
-        marker.map = mapView;
-        
-        MKAnnotationView *anView = [marker getAnnotationView];
-        for (UIView *subview in [anView subviews]) {
-            if ([subview tag] == clusterIndicatorTag) {
-                [subview removeFromSuperview];
-            }
-        }
-        if (marker.coveringMarkers.count > 0) {
-            UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
-                                                              withAmountInCluster:marker.coveringMarkers.count+1
-                                                                usingMarkerRadius:[marker radius]
+        if (aheadMarker.coveringMarkers.count > 0) {
+            UIColor *color = [[aheadMarker borderColor] representedColor];
+            NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
+            NSLog(@"rrrr viewForAnnotation amountInCluster %i", amountInCluster);
+            UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:color
+                                                              withAmountInCluster:amountInCluster
+                                                                usingMarkerRadius:[aheadMarker radius]
                                                           withClusterIndicatorTag:clusterIndicatorTag
                                   ];
 
-            [anView addSubview:labelView];
+            [aheadAnView addSubview:labelView];
         }
-        return anView;
+        return aheadAnView;
     }
     
     // TODO: Should instead make a binding to RN-Maps with option to deactivate press.
-    if ([marker isKindOfClass:[MKUserLocation class]])
+    if ([anView isKindOfClass:[MKUserLocation class]])
     {
-        ((MKUserLocation *)marker).title = @"";
+        ((MKUserLocation *)anView).title = @"";
         return nil;
     }
 
@@ -578,8 +557,12 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //        }];
 //    }
 
-    marker.map = mapView;
-    return [marker getAnnotationView];
+    if ([anView isKindOfClass:[AIRMapMarker class]]) {
+        AIRMapMarker *marker = anView;
+        marker.map = mapView;
+        return [marker getAnnotationView];
+    }
+    return anView;
 }
 
 static int kDragCenterContext;

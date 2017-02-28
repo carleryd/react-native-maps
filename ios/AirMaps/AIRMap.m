@@ -108,21 +108,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-//        [self addAnnotation:(id<MKAnnotation>)subview];
-        
-        /**
-         * Check if already exists before adding it.
-         * Unless we stop this from happning, a bunch of markers get added and then
-         * removed right after, causing marker blink glitches.
-         */
-        AIRMapAheadMarker *marker = subview;
-        if ([self.clusteringManager.allAnnotations containsObject:marker] == NO) {
-            NSLog(@"aaaa ADDING MARKER TO CLUSTER");
-            [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
-        } else {
-            NSLog(@"aaaa cluster already contains marker!");
-        }
-        
+        [self addAnnotation:(id<MKAnnotation>)subview];
+        [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
@@ -236,7 +223,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
     double threshold = 30;
     if (diffX > threshold || diffY > threshold) {
-        [[marker getAnnotationView] setAlpha:1.0];
+        CGFloat newAlpha = marker.importantStatus.unimportantOpacity;
+        [[marker getAnnotationView] setAlpha:newAlpha];
         [utilities setPrevPressedMarker:nil];
     }
 }

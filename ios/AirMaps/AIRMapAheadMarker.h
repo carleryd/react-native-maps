@@ -40,7 +40,7 @@ typedef struct ImportantStatus ImportantStatus;
 /**
  * TODO: Is it possible to set this as UIColor directly using representedColor func?
  */
-@property (nonatomic, assign) NSString *borderColor;
+@property (nonatomic, copy) NSString *borderColor;
 
 /**
  * These properties are part of the clustering logic.

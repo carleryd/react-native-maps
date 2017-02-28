@@ -25,11 +25,11 @@
     MKAnnotationView *_anView;
 }
 
-//- (id)init {
-//    self = [super init];
-//    self.coveringMarkers = [[NSMutableArray alloc] init];
-//    return self;
-//}
+- (id)init {
+    self = [super init];
+    self.coveringMarkers = [[NSMutableArray alloc] init];
+    return self;
+}
 
 - (void)reactSetFrame:(CGRect)frame
 {
@@ -93,6 +93,8 @@
         _anView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
         _anView.annotation = self;
         _anView.draggable = self.draggable;
+        _anView.layer.zPosition = self.zIndex;
+        
         
         NSURL *url = [NSURL URLWithString: [self imageSrc]];
         UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];

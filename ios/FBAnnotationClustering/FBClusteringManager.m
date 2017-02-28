@@ -202,6 +202,19 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     }];
     
     /**
+     * Removing any occurence of AIRMapMarker because we do not want these to be clustered.
+     */
+    int i;
+    NSMutableArray *toBeRemoved = [[NSMutableArray alloc] init];
+    for (i = 0; i < [annotations count]; ++i) {
+        if ([[annotations objectAtIndex:i] isKindOfClass:[AIRMapMarker class]]) {
+            [clusteredAnnotations addObject:[annotations objectAtIndex:i]];
+            [toBeRemoved addObject:[annotations objectAtIndex:i]];
+        }
+    }
+    [annotations removeObjectsInArray:toBeRemoved];
+    
+    /**
      * Sort annotations based on radius.
      */
     NSArray *sortedAnnotations;
@@ -278,6 +291,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * Using rectsPointsPerPixelX we should be able to determine how far one marker is to another.
          */
         for (int b = 0; b < [sortedAnnotations count]; ++b) {
+            if (a >= b) continue;
             // If this marker is already clustered it is of no interest to us.
             AIRMapAheadMarker *mb = [sortedAnnotations objectAtIndex:b];
             if ([clusteredMarkers containsObject:mb]) continue;
@@ -313,10 +327,13 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 //            [clusteredAnnotations addObject:cluster];
 //            [clusteredAnnotations addObject:ma];
             
+            NSLog(@"rrrr setting coveringMarkers %i", [coveredByA count]);
             [ma setCoveringMarkers:coveredByA];
             [clusteredAnnotations addObject:ma];
             [clusteredMarkers addObjectsFromArray:coveredByA];
         } else if ([clusteredMarkers member:ma] == false) {
+            NSLog(@"rrrr removing coveringMarkers %i", [[ma coveringMarkers] count]);
+            
 //            [ma setCoveringMarkers:coveredByA];
             [[ma coveringMarkers] removeAllObjects];
             [clusteredAnnotations addObject:ma];
@@ -363,31 +380,31 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         [toRemove minusSet:after];
         
         NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
-        NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
-        NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
-        for (NSObject *rm in toRemove) {
-    //        NSLog(@"aaaa %i rm", [rm isKindOfClass:[AIRMapAheadMarker class]]);
-            if ([rm isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-            for (NSObject *add in toAdd) {
-    //            NSLog(@"aaaa %i add", [add isKindOfClass:[AIRMapAheadMarker class]]);
-                if ([add isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-                CGFloat latAndLngAdd = 0;
-                CGFloat latAndLngRm = 0;
-                
-                AIRMapAheadMarker *addMarker = add;
-                latAndLngAdd = addMarker.coordinate.latitude + addMarker.coordinate.longitude;
-                AIRMapAheadMarker *rmMarker = rm;
-                latAndLngRm = rmMarker.coordinate.latitude + rmMarker.coordinate.longitude;
-                
-                // NSLog(@"aaaa add %f rm %f", latAndLngAdd, latAndLngRm);
-                
-                if (latAndLngRm == latAndLngAdd) {
-                    // NSLog(@"aaaa WE ARE ADDING AND REMOVING SAME ANNOTATION!!!");
-                    [toNotAdd addObject:add];
-                    [toNotRemove addObject:rm];
-                }
-            }
-        }
+//        NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
+//        NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
+//        for (NSObject *rm in toRemove) {
+//    //        NSLog(@"aaaa %i rm", [rm isKindOfClass:[AIRMapAheadMarker class]]);
+//            if ([rm isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+//            for (NSObject *add in toAdd) {
+//    //            NSLog(@"aaaa %i add", [add isKindOfClass:[AIRMapAheadMarker class]]);
+//                if ([add isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+//                CGFloat latAndLngAdd = 0;
+//                CGFloat latAndLngRm = 0;
+//                
+//                AIRMapAheadMarker *addMarker = add;
+//                latAndLngAdd = addMarker.coordinate.latitude + addMarker.coordinate.longitude;
+//                AIRMapAheadMarker *rmMarker = rm;
+//                latAndLngRm = rmMarker.coordinate.latitude + rmMarker.coordinate.longitude;
+//                
+//                // NSLog(@"aaaa add %f rm %f", latAndLngAdd, latAndLngRm);
+//                
+//                if (latAndLngRm == latAndLngAdd) {
+//                    // NSLog(@"aaaa WE ARE ADDING AND REMOVING SAME ANNOTATION!!!");
+//                    [toNotAdd addObject:add];
+//                    [toNotRemove addObject:rm];
+//                }
+//            }
+//        }
 
         
         /**
@@ -400,20 +417,22 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         [mapView removeAnnotations:[toRemove allObjects]];
         
         NSInteger clusterIndicatorTag = 1234;
-        for (AIRMapAheadMarker *marker in annotations) {
-            if ([marker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-            MKAnnotationView *anView = [marker getAnnotationView];
+        for (AIRMapAheadMarker *aheadMarker in annotations) {
+            if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+            MKAnnotationView *anView = [aheadMarker getAnnotationView];
             for (UIView *subview in [anView subviews]) {
                 if ([subview tag] == clusterIndicatorTag) {
-                    // NSLog(@"rrrr removing cluster tag");
+                     NSLog(@"rrrr removing cluster tag");
                     [subview removeFromSuperview];
                 }
             }
-            if (marker.coveringMarkers.count > 0) {
-                // NSLog(@"rrrr adding cluster tag %i", marker.coveringMarkers.count);
-                UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
-                                                                  withAmountInCluster:marker.coveringMarkers.count+1
-                                                                    usingMarkerRadius:[marker radius]
+            if (aheadMarker.coveringMarkers.count > 0) {
+                 NSLog(@"rrrr adding cluster tag %i", aheadMarker.coveringMarkers.count);
+                UIColor *color = [[aheadMarker borderColor] representedColor];
+                NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
+                UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:color
+                                                                  withAmountInCluster:amountInCluster
+                                                                    usingMarkerRadius:[aheadMarker radius]
                                                               withClusterIndicatorTag:clusterIndicatorTag
                                       ];
                 
