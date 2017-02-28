@@ -24,6 +24,12 @@ struct ImportantStatus {
 };
 typedef struct ImportantStatus ImportantStatus;
 
+typedef enum {
+    FULLY_COVERED,
+    PARTIALLY_COVERED,
+    NOT_COVERED
+} MarkerCoveredState;
+
 @property (nonatomic, weak) AIRMap *map;
 @property (nonatomic, weak) RCTBridge *bridge;
 
@@ -34,13 +40,15 @@ typedef struct ImportantStatus ImportantStatus;
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
+@property (nonatomic, assign) MarkerCoveredState coveredState;
 
 @property (nonatomic, assign) ImportantStatus importantStatus;
 @property (nonatomic, assign) float radius;
+@property (nonatomic, assign) float scale;
 /**
  * TODO: Is it possible to set this as UIColor directly using representedColor func?
  */
-@property (nonatomic, assign) NSString *borderColor;
+@property (nonatomic, copy) NSString *borderColor;
 
 /**
  * These properties are part of the clustering logic.
@@ -50,6 +58,7 @@ typedef struct ImportantStatus ImportantStatus;
 @property (nonatomic, assign) BOOL hiddenByCluster;
 @property (nonatomic, strong) NSMutableArray *coveringMarkers;
 
+@property (nonatomic, strong) MKAnnotationView *anView;
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) RCTDirectEventBlock onSelect;
@@ -59,6 +68,7 @@ typedef struct ImportantStatus ImportantStatus;
 @property (nonatomic, copy) RCTDirectEventBlock onDragEnd;
 
 
+- (void)updateAnnotationView;
 - (MKAnnotationView *)getAnnotationView;
 - (BOOL)shouldUsePinView;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;

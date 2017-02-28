@@ -22,14 +22,18 @@
 
 @implementation AIRMapAheadMarker { RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     MKPinAnnotationView *_pinView;
+    MKAnnotationView *_circleAnView;
+    MKAnnotationView *_dotAnView;
     MKAnnotationView *_anView;
 }
 
-//- (id)init {
-//    self = [super init];
-//    self.coveringMarkers = [[NSMutableArray alloc] init];
-//    return self;
-//}
+- (id)init {
+    self = [super init];
+    [self setCoveringMarkers:[[NSMutableArray alloc] init]];
+    [self setCoveredState:NOT_COVERED];
+    [self setScale:1.00];
+    return self;
+}
 
 - (void)reactSetFrame:(CGRect)frame
 {
@@ -71,7 +75,7 @@
                                [self radius] * 2,
                                [self radius] * 2);
     
-    if (CGRectContainsPoint(bounds, point) && [self hiddenByCluster] == NO) { // TODO: Hacky hiddenByCluster
+    if (CGRectContainsPoint(bounds, point) && [self coveredState] == NOT_COVERED) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
         AIRMapAheadMarker *marker = [utilities prevPressedMarker];
         
@@ -87,35 +91,129 @@
     return [super hitTest:point withEvent:event];
 }
 
+- (UIImageView *)getImageViewFromUrl:(NSURL *)url
+                          withRadius:(CGFloat)radius
+                     withBorderColor:(UIColor *)borderColor
+{
+    UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-[self radius],
+                                                                           -[self radius],
+                                                                           [self radius]*2,
+                                                                           [self radius]*2)];
+    imageView.image = image;
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    imageView.clipsToBounds = YES;
+    imageView.layer.cornerRadius = [self radius];
+    imageView.layer.borderWidth = [self radius] * 0.1;
+    imageView.layer.borderColor = [borderColor CGColor];
+    imageView.layer.masksToBounds = YES;
+    return imageView;
+}
+
+- (UIImage *)createCircle:(UIColor *)color {
+    UIImage *circle = nil;
+    
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(ctx);
+        
+    CGRect rect = CGRectMake(0, 0, 12, 12);
+    CGContextSetFillColorWithColor(ctx, color.CGColor);
+    CGContextFillEllipseInRect(ctx, rect);
+        
+    CGContextRestoreGState(ctx);
+    circle = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+        
+    return circle;
+}
+
+- (void)updateAnnotationView
+{
+    NSLog(@"tttt updating annotationView");
+    [self setAnView:_circleAnView];
+    switch ([self coveredState]) {
+        case FULLY_COVERED:
+        {
+            NSLog(@"tttt update FULLY_COVERED");
+//            [self setAnView:_dotAnView];
+        }
+            break;
+        case PARTIALLY_COVERED:
+        {
+            NSLog(@"tttt update PARTIALLY_COVERED");
+//            if ([self scale] != 0.25) {
+//                [UIView animateWithDuration:0.25 animations:^{
+                    self.anView.transform = CGAffineTransformMakeScale(0.25, 0.25);
+//                } completion:^(BOOL finished) {
+//                }];
+//                [self setScale:0.25];
+//            }
+//            [self setAnView:_dotAnView];
+        }
+            break;
+        case NOT_COVERED:
+        {
+            NSLog(@"tttt update NOT_COVERED");
+//            if ([self scale] != 1.00) {
+//                [UIView animateWithDuration:0.25 animations:^{
+                    self.anView.transform = CGAffineTransformMakeScale(1.00, 1.00);
+//                } completion:^(BOOL finished) {
+//                }];
+//                [self setScale:1.00];
+//            }
+        }
+            break;
+        default:
+        {
+            NSLog(@"tttt update DEFAULT COVERED STATE");
+        }
+            break;
+    }
+    CGFloat alpha = (self.importantStatus.isImportant == YES)
+        ? 1.0
+        : self.importantStatus.unimportantOpacity;
+    [[self anView] setAlpha:alpha];
+}
+
 - (MKAnnotationView *)getAnnotationView
 {
     if (_anView == nil) {
         _anView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
         _anView.annotation = self;
         _anView.draggable = self.draggable;
-        
-        NSURL *url = [NSURL URLWithString: [self imageSrc]];
-        UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-[self radius],
-                                                                               -[self radius],
-                                                                               [self radius]*2,
-                                                                               [self radius]*2)];
-        imageView.image = image;
-        imageView.contentMode = UIViewContentModeScaleAspectFill;
-        imageView.clipsToBounds = YES;
-        imageView.layer.cornerRadius = [self radius];
-        imageView.layer.borderWidth = [self radius] * 0.1;
-        imageView.layer.borderColor = [[[self borderColor] representedColor] CGColor];
-        imageView.layer.masksToBounds = YES;
-        
-        [_anView addSubview:imageView];
     }
-    CGFloat alpha = (self.importantStatus.isImportant == YES)
-        ? 1.0
-        : self.importantStatus.unimportantOpacity;
-    [_anView setAlpha:alpha];
+    if (_circleAnView == nil) {
+        _circleAnView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
+        _circleAnView.annotation = self;
+        _circleAnView.draggable = self.draggable;
         
-    return _anView;
+        UIImageView *imageView = [[UIImageView alloc] init];
+
+        NSURL *url = [NSURL URLWithString: [self imageSrc]];
+        imageView = [self getImageViewFromUrl:url
+                                                withRadius:[self radius]
+                                           withBorderColor:[[self borderColor] representedColor]
+                                  ];
+        [_circleAnView addSubview:imageView];
+    }
+    if (_dotAnView == nil) {
+        _dotAnView = [[MKAnnotationView alloc] initWithAnnotation:self reuseIdentifier: nil];
+        _dotAnView.annotation = self;
+        _dotAnView.draggable = self.draggable;
+        
+        /* Use NSString-Color library to intelligently convert string colors to hex.
+         * See https://github.com/nicolasgoutaland/NSString-Color
+         */
+        UIColor *color = [[self borderColor] representedColor];
+        UIImage *image = [AIRMapUtilities createCircleWithColor:color withRadius:5];
+        _dotAnView.image = image;
+    }
+    
+    [self updateAnnotationView];
+//    [self setAnView:_circleAnView];
+    
+    return [self anView];
 }
 
 - (void)setZIndex:(NSInteger)zIndex

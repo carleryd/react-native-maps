@@ -47,11 +47,6 @@ RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
 // TODO: Do something about this, its hacky
 RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
-/**
- * TODO: Move to subclass AheadMarker
- */
-RCT_EXPORT_VIEW_PROPERTY(importantStatus, ImportantStatus)
-RCT_EXPORT_VIEW_PROPERTY(radius, float)
 
 
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)

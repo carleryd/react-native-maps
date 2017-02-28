@@ -108,8 +108,12 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
-    return [self myClusteringFunc:rect];
-//    return [self myClusteringFunc:rect withZoomScale:zoomScale withFilter:nil];
+    /**
+     * The original function for clustering AIRMapMarker is clusteredAnnotationsWithinMapRect.
+     * The clustering function for AIRMapAheadMarker is largestFirstClusteringWithinMapRect.
+     * TODO: Handle all kinds of markers?
+     */
+    return [self largestFirstClusteringWithinMapRect:rect];
 }
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
@@ -181,7 +185,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     return [NSArray arrayWithArray:clusteredAnnotations];
 }
 
-- (NSArray *)myClusteringFunc:(MKMapRect)rect
+- (NSArray *)largestFirstClusteringWithinMapRect:(MKMapRect)rect
 {
     NSMutableArray *clusteredAnnotations = [[NSMutableArray alloc] init];
     NSMutableSet *clusteredMarkers = [[NSMutableSet alloc] init];
@@ -259,11 +263,18 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     CGFloat pixelPerRectPointY = screenHeight / rectHeight;
     
     /**
+     * Reset all markers coverState.
+     */
+    for (AIRMapAheadMarker *marker in sortedAnnotations) {
+        [marker setCoveredState:NOT_COVERED];
+    }
+    
+    /**
      * Beginning at head, look through list and check each annotation against the rest
      */
     for (int a = 0; a < [sortedAnnotations count]; ++a) {
-        // If this marker is already clustered it is of no interest to us.
         AIRMapAheadMarker *ma = [sortedAnnotations objectAtIndex:a];
+        // If this marker is already clustered it is of no interest to us.
         if ([clusteredMarkers containsObject:ma]) {
             continue;
         }
@@ -278,90 +289,156 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * Using rectsPointsPerPixelX we should be able to determine how far one marker is to another.
          */
         for (int b = 0; b < [sortedAnnotations count]; ++b) {
+            if (b <= a) continue;
             // If this marker is already clustered it is of no interest to us.
             AIRMapAheadMarker *mb = [sortedAnnotations objectAtIndex:b];
             if ([clusteredMarkers containsObject:mb]) continue;
-            if (a != b) {
-                CGFloat latB = mb.coordinate.latitude;
-                CGFloat lngB = mb.coordinate.longitude;
-                MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
-                
-                CGFloat distanceX = fabsf(pointA.x - pointB.x);
-                CGFloat distanceY = fabsf(pointA.y - pointB.y);
-                CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
-                CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
-                CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
-                CGFloat combinedRadius = [ma radius] + [mb radius];
-                
-                if (combinedRadius > pixelHypotenuse) {
+            CGFloat latB = mb.coordinate.latitude;
+            CGFloat lngB = mb.coordinate.longitude;
+            MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
+            
+            CGFloat distanceX = fabsf(pointA.x - pointB.x);
+            CGFloat distanceY = fabsf(pointA.y - pointB.y);
+            CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
+            CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
+            CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
+            CGFloat combinedRadius = [ma radius] + [mb radius];
+            
+            /**
+             * We have three outcomes for every marker mb being checked here against ma:
+             * 1. The marker mb is fully covered, i.e. it's center is underneath ma
+             *      => Fully hide mb
+             * 2. The marker mb is colliding with ma but it's center is not underneath ma
+             *      => Make mb into a smaller marker
+             * 3. The marker mb is not touching ma
+             *      => Let mb be an unclustered normal marker
+             */
+            
+            MarkerCoveredState state = ((pixelHypotenuse - [ma radius]) < 0)
+                ? FULLY_COVERED
+                : ((pixelHypotenuse - [ma radius] - [mb radius]) < 0)
+                    ? PARTIALLY_COVERED
+                    : NOT_COVERED;
+            
+            if ([mb coveredState] == NOT_COVERED) {
+                [mb setCoveredState:state];
+            }
+            
+            switch (state) {
+                case FULLY_COVERED:
+                {
+                    NSLog(@"tttt cluster FULLY_COVERED");
                     [coveredByA addObject:mb];
                     [mb setHiddenByCluster:YES];
                 }
+                    break;
+                case PARTIALLY_COVERED:
+                {
+                    NSLog(@"tttt cluster PARTIALLY_COVERED");
+//                    [coveredByA addObject:mb];
+//                    [mb setHiddenByCluster:YES];
+//                    [mb updateAnnotationView];
+                }
+                    break;
+                case NOT_COVERED:
+                    NSLog(@"tttt cluster NOT_COVERED");
+                {
+//                    [mb updateAnnotationView];
+                }
+                    break;
+                default:
+                    break;
             }
+//                if (combinedRadius > pixelHypotenuse) {
+//                    [coveredByA addObject:mb];
+//                    [mb setHiddenByCluster:YES];
+//                }
         }
         /**
          * If it covers some markers, create a cluster.
          * If it has not been a part of any clustering, simply add it.
          * If it has been covered by another marker, ignore it.
          */
-        // NSLog(@"zzzz clustering func coverAmount %i", [coveredByA count]);
+         NSLog(@"tttt clustering func coverAmount %i", [coveredByA count]);
         if ([coveredByA count] > 0) {
-//            FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
-//            cluster.coordinate = [ma coordinate];
-//            cluster.annotations = coveredByA; // contains ma??? should it?
-//            cluster.topAnnotation = ma;
-//            [clusteredAnnotations addObject:cluster];
-//            [clusteredAnnotations addObject:ma];
-            
             [ma setCoveringMarkers:coveredByA];
             [clusteredAnnotations addObject:ma];
             [clusteredMarkers addObjectsFromArray:coveredByA];
-        } else if ([clusteredMarkers member:ma] == false) {
-//            [ma setCoveringMarkers:coveredByA];
-            [[ma coveringMarkers] removeAllObjects];
-            [clusteredAnnotations addObject:ma];
+    //        } else if ([clusteredMarkers member:ma] == false) {
+        } else {
+            switch ([ma coveredState]) {
+                    case FULLY_COVERED:
+                        break;
+                    case PARTIALLY_COVERED:
+                        [[ma coveringMarkers] removeAllObjects]; // TODO: Remove?
+                        [clusteredAnnotations addObject:ma];
+                        break;
+                    case NOT_COVERED:
+                        [[ma coveringMarkers] removeAllObjects]; // TODO: Remove?
+                        [clusteredAnnotations addObject:ma];
+                        break;
+                    default:
+                        break;
+            }
         }
     }
-    [self.lock unlock];
     
+    for (AIRMapAheadMarker *m in sortedAnnotations) {
+        switch ([m coveredState]) {
+                case FULLY_COVERED:
+                    NSLog(@"tttt before update FULLY_COVERED");
+                    break;
+                case PARTIALLY_COVERED:
+                    NSLog(@"tttt before update PARTIALLY_COVERED");
+                    break;
+                case NOT_COVERED:
+                    NSLog(@"tttt before update NOT_COVERED");
+                    break;
+                default:
+                    break;
+        }
+        [m updateAnnotationView];
+    }
+    [self.lock unlock];
+
     return [NSArray arrayWithArray:clusteredAnnotations];
 }
 
 - (NSArray *)allAnnotations
 {
-    NSMutableArray *annotations = [[NSMutableArray alloc] init];
-    
-    [self.lock lock];
-    [self.tree enumerateAnnotationsUsingBlock:^(id<MKAnnotation> obj) {
-        [annotations addObject:obj];
-    }];
-    [self.lock unlock];
-    
-    return annotations;
+NSMutableArray *annotations = [[NSMutableArray alloc] init];
+
+[self.lock lock];
+[self.tree enumerateAnnotationsUsingBlock:^(id<MKAnnotation> obj) {
+    [annotations addObject:obj];
+}];
+[self.lock unlock];
+
+return annotations;
 }
 
 - (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
-        NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
-        
-        MKUserLocation *userLocation = [mapView userLocation];
-        if (userLocation) {
-            [before removeObject:userLocation];
-        }
-        NSSet *after = [NSSet setWithArray:annotations];
-        NSLog(@"aaaa before size %i after size %i", [before count], [after count]);
+[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
+    NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
+    
+    MKUserLocation *userLocation = [mapView userLocation];
+    if (userLocation) {
+        [before removeObject:userLocation];
+    }
+    NSSet *after = [NSSet setWithArray:annotations];
+    NSLog(@"aaaa before size %i after size %i", [before count], [after count]);
 
-        NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
-        [toKeep intersectSet:after];
-        
-        NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
-        [toAdd minusSet:toKeep];
+    NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
+    [toKeep intersectSet:after];
+    
+    NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
+    [toAdd minusSet:toKeep];
 
-        NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
-        [toRemove minusSet:after];
-        
+    NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
+    [toRemove minusSet:after];
+    
         NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
         NSMutableSet *toNotRemove = [[NSMutableSet alloc] init];
         NSMutableSet *toNotAdd = [[NSMutableSet alloc] init];
@@ -395,6 +472,11 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * We need to filter them further so that the same annotations are not removed and
          * added here.
          */
+        
+//        for (AIRMapAheadMarker *marker in annotations) {
+//            if ([marker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+//
+//        }
     
         [mapView addAnnotations:[toAdd allObjects]];
         [mapView removeAnnotations:[toRemove allObjects]];
@@ -402,6 +484,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         NSInteger clusterIndicatorTag = 1234;
         for (AIRMapAheadMarker *marker in annotations) {
             if ([marker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+            
             MKAnnotationView *anView = [marker getAnnotationView];
             for (UIView *subview in [anView subviews]) {
                 if ([subview tag] == clusterIndicatorTag) {
@@ -409,8 +492,8 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                     [subview removeFromSuperview];
                 }
             }
-            if (marker.coveringMarkers.count > 0) {
-                // NSLog(@"rrrr adding cluster tag %i", marker.coveringMarkers.count);
+            if (marker.coveringMarkers.count > 0 && marker.coveredState == NOT_COVERED) {
+                 NSLog(@"tttt adding cluster tag %i", marker.coveringMarkers.count);
                 UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:[@"#039be5" representedColor]
                                                                   withAmountInCluster:marker.coveringMarkers.count+1
                                                                     usingMarkerRadius:[marker radius]
@@ -418,6 +501,20 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                                       ];
                 
                 [anView addSubview:labelView];
+            }
+            
+            switch ([marker coveredState]) {
+                case FULLY_COVERED:
+                    break;
+                case PARTIALLY_COVERED:
+                {
+                }
+                    break;
+                case NOT_COVERED:
+                    
+                    break;
+                default:
+                    break;
             }
         }
     }];
