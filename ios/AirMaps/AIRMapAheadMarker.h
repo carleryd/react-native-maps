@@ -24,6 +24,12 @@ struct ImportantStatus {
 };
 typedef struct ImportantStatus ImportantStatus;
 
+typedef enum {
+    FULLY_COVERED,
+    PARTIALLY_COVERED,
+    NOT_COVERED
+} MarkerCoveredState;
+
 @property (nonatomic, weak) AIRMap *map;
 @property (nonatomic, weak) RCTBridge *bridge;
 
@@ -35,6 +41,7 @@ typedef struct ImportantStatus ImportantStatus;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
 
+@property (nonatomic, assign) MarkerCoveredState coveredState;
 @property (nonatomic, assign) ImportantStatus importantStatus;
 @property (nonatomic, assign) float radius;
 /**

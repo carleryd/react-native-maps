@@ -506,21 +506,37 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(MKAnnotationView *)anView
 {
-    /**
-     * If our marker is a cluster, i.e. the FBAnnotationClustering code has done what???
-     * Note: It seems that the marker is modified, and without this if the app crashes.
-     */
+    if ([anView isKindOfClass:[FBAnnotationDot class]]) {
+        NSLog(@"gggg viewForAnnotation FBAnnotationDot");
+        FBAnnotationDot *dot = (FBAnnotationDot *)anView;
+        
+        static NSString* identifier = @"dotAnnotationView";
+        MKAnnotationView *dotAnView = [[MKAnnotationView alloc] initWithAnnotation:anView
+                                                                   reuseIdentifier:identifier
+                                       ];
+
+        dotAnView.enabled = false;
+        
+        /* Use NSString-Color library to intelligently convert string colors to hex.
+         * See https://github.com/nicolasgoutaland/NSString-Color
+         */
+        dotAnView.image = [AIRMapAheadMarkerUtilities createCircleWithColor:[@"#039be5" representedColor]
+                                                                 withRadius:5.0
+                           ];
+        
+        return dotAnView;
+    }
     NSInteger clusterIndicatorTag = 1234;
     if ([anView isKindOfClass:[AIRMapAheadMarker class]]) {
         AIRMapAheadMarker *aheadMarker = anView;
         aheadMarker.map = mapView;
         
         MKAnnotationView *aheadAnView = [aheadMarker getAnnotationView];
-//        for (UIView *subview in [aheadAnView subviews]) {
-//            if ([subview tag] == clusterIndicatorTag) {
-//                [subview removeFromSuperview];
-//            }
-//        }
+        for (UIView *subview in [aheadAnView subviews]) {
+            if ([subview tag] == clusterIndicatorTag) {
+                [subview removeFromSuperview];
+            }
+        }
         if (aheadMarker.coveringMarkers.count > 0) {
             UIColor *color = [[aheadMarker borderColor] representedColor];
             NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;

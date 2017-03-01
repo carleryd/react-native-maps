@@ -255,7 +255,13 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
     CGFloat combinedRadius = [ma radius] + [mb radius];
     
-    return combinedRadius > pixelHypotenuse;
+    MarkerCoveredState coveredState = ((pixelHypotenuse - [ma radius]) < 0)
+        ? FULLY_COVERED
+        : ((pixelHypotenuse - [ma radius] - [mb radius]) < 0)
+            ? PARTIALLY_COVERED
+            : NOT_COVERED;
+    
+    return coveredState;
 }
 
 /**
@@ -326,6 +332,13 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
     
     /**
+     * Reset all markers coverState.
+     */
+    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
+        [marker setCoveredState:NOT_COVERED];
+    }
+    
+    /**
      * Beginning at head, look through list and check each annotation against the rest
      */
     for (int a = 0; a < [sortedAheadMarkers count]; ++a) {
@@ -345,16 +358,40 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             // Ignore mb if it is already clustered.
             if ([coveredAnnotations containsObject:mb]) continue;
             
-            if ([self checkCollisionWithMarkerA:ma
-                                 againstMarkerB:mb
-                                   usingMapRect:mapRect
-                                usingScreenRect:screenRect
-                 ] == YES)
-            {
-                [[ma coveringMarkers] addObject:mb];
-                [annotationsToBeShown removeObject:mb];
-                [coveredAnnotations addObject:mb];
+            MarkerCoveredState coveredState = [self checkCollisionWithMarkerA:ma
+                                                               againstMarkerB:mb
+                                                                 usingMapRect:mapRect
+                                                              usingScreenRect:screenRect
+                                               ];
+            switch (coveredState) {
+                case NOT_COVERED:
+                    break;
+                case PARTIALLY_COVERED:
+                {
+                    FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
+                    [dotAnnotation setCoordinate:[mb coordinate]];
+                    [dotAnnotation setColor:[mb borderColor]];
+                    
+                    [annotationsToBeShown removeObject:mb];
+                    [annotationsToBeShown addObject:dotAnnotation];
+                    [coveredAnnotations addObject:mb];
+                }
+                    break;
+                case FULLY_COVERED:
+                {
+                    [[ma coveringMarkers] addObject:mb];
+                    [annotationsToBeShown removeObject:mb];
+                    [coveredAnnotations addObject:mb];
+                }
+                    break;
+                default:
+                    break;
             }
+            
+            if ([mb coveredState] == NOT_COVERED) {
+                [mb setCoveredState:coveredState];
+            }
+
         }
         /**
          * If it covers some markers, create a cluster.
