@@ -28,7 +28,6 @@
 - (id)init {
     self = [super init];
     self.coveringMarkers = [[NSMutableArray alloc] init];
-    self.bounds = CGRectMake(0, 0, [self radius] * 2, [self radius] * 2);
     return self;
 }
 
@@ -48,10 +47,10 @@
  */
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     CGPoint center = [[self map] convertCoordinate:[self coordinate] toPointToView:[self map]];
-    CGRect bounds = CGRectMake(center.x - self.bounds.size.width/2 ,
-                               center.y - self.bounds.size.height/2,
-                               self.bounds.size.width,
-                               self.bounds.size.height);
+    CGRect bounds = CGRectMake(center.x - self.size.width/2,
+                               center.y - self.size.height/2,
+                               self.size.width,
+                               self.size.height);
     BOOL existsInMap = [[[self map] annotations] containsObject:self];
     
     if (CGRectContainsPoint(bounds, point) && existsInMap) {
@@ -70,6 +69,10 @@
     return [super hitTest:point withEvent:event];
 }
 
+/**
+ * The map will request a view to be shown for each annotation on the map.
+ * This function returns that view.
+ */
 - (MKAnnotationView *)getAnnotationView
 {
     if (_anView == nil) {
@@ -81,15 +84,18 @@
         
         NSURL *url = [NSURL URLWithString: [self imageSrc]];
         UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-[self radius],
-                                                                               -[self radius],
-                                                                               [self radius]*2,
-                                                                               [self radius]*2)];
+        CGFloat width = self.bounds.size.width;
+        CGFloat height = self.bounds.size.height;
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-self.size.width/2,
+                                                                               -self.size.height/2,
+                                                                               self.size.width,
+                                                                               self.size.height)];
+        
         imageView.image = image;
         imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageView.clipsToBounds = YES;
-        imageView.layer.cornerRadius = [self radius];
-        imageView.layer.borderWidth = [self radius] * 0.1;
+        imageView.layer.cornerRadius = self.size.width / 2;
+        imageView.layer.borderWidth = imageView.layer.cornerRadius * 0.10;
         imageView.layer.borderColor = [[[self borderColor] representedColor] CGColor];
         imageView.layer.masksToBounds = YES;
         
@@ -107,6 +113,12 @@
 {
     _zIndex = zIndex;
     self.layer.zPosition = _zIndex;
+}
+
+- (void)setRadius:(float)radius
+{
+    [self setSize:CGSizeMake(radius * 2, radius * 2)];
+    _radius = radius;
 }
 
 @end
