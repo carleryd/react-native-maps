@@ -48,6 +48,7 @@ typedef enum {
  * TODO: Is it possible to set this as UIColor directly using representedColor func?
  */
 @property (nonatomic, copy) NSString *borderColor;
+@property (nonatomic, strong) UIColor *borderUIColor;
 @property (nonatomic, assign) CGSize size;
 
 /**

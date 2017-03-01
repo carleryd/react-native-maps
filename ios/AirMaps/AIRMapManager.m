@@ -509,6 +509,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
     if ([anView isKindOfClass:[FBAnnotationDot class]]) {
         NSLog(@"gggg viewForAnnotation FBAnnotationDot");
         FBAnnotationDot *dot = (FBAnnotationDot *)anView;
+        NSLog(@"gggg viewForAnnotation color %@", [dot color]);
         
         static NSString* identifier = @"dotAnnotationView";
         MKAnnotationView *dotAnView = [[MKAnnotationView alloc] initWithAnnotation:anView
@@ -520,9 +521,10 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         /* Use NSString-Color library to intelligently convert string colors to hex.
          * See https://github.com/nicolasgoutaland/NSString-Color
          */
-        dotAnView.image = [AIRMapAheadMarkerUtilities createCircleWithColor:[@"#039be5" representedColor]
+        dotAnView.image = [AIRMapAheadMarkerUtilities createCircleWithColor:[dot color]
                                                                  withRadius:5.0
                            ];
+        [dotAnView setAlpha:[dot alpha]];
         
         return dotAnView;
     }
@@ -531,6 +533,22 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         AIRMapAheadMarker *aheadMarker = anView;
         aheadMarker.map = mapView;
         
+        /**
+         * AIRMapAheadMarker animation upon "creation".
+         */
+        aheadMarker.transform = CGAffineTransformMakeScale(0, 0);
+        aheadMarker.enabled = false;
+
+        [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
+            aheadMarker.transform = CGAffineTransformIdentity;
+        } completion:^(BOOL finished){
+            aheadMarker.enabled = true;
+        }];
+        
+        
+        /**
+         * Setting cluster indicator on marker if it is a cluster.
+         */
         MKAnnotationView *aheadAnView = [aheadMarker getAnnotationView];
         for (UIView *subview in [aheadAnView subviews]) {
             if ([subview tag] == clusterIndicatorTag) {
@@ -558,20 +576,6 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         ((MKUserLocation *)anView).title = @"";
         return nil;
     }
-
-    /**
-     * Marker "creation" animation. TODO: should only occur for AheadMarker
-     */
-//    if ([marker isKindOfClass:[AIRMapAheadMarker class]]) {
-//        marker.transform = CGAffineTransformMakeScale(0, 0);
-//        marker.enabled = false;
-//
-//        [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
-//            marker.transform = CGAffineTransformIdentity;
-//        } completion:^(BOOL finished){
-//            marker.enabled = true;
-//        }];
-//    }
 
     if ([anView isKindOfClass:[AIRMapMarker class]]) {
         AIRMapMarker *marker = anView;

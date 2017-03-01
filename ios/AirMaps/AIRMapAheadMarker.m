@@ -101,10 +101,7 @@
         
         [_anView addSubview:imageView];
     }
-    CGFloat alpha = (self.importantStatus.isImportant == YES)
-        ? 1.0
-        : self.importantStatus.unimportantOpacity;
-    [_anView setAlpha:alpha];
+    [_anView setAlpha:[self alpha]];
         
     return _anView;
 }
@@ -123,8 +120,13 @@
 
 - (void)setImportantStatus:(ImportantStatus)importantStatus
 {
-    NSLog(@"aaaa importantStatus %i %f", importantStatus.isImportant, importantStatus.unimportantOpacity);
     _importantStatus = importantStatus;
+    
+    CGFloat alpha = (importantStatus.isImportant == YES)
+        ? 1.0
+        : importantStatus.unimportantOpacity;
+    [self setAlpha:alpha];
+    
     if ([[self map] clusterMarkers] == YES) {
         [self.map.delegate mapView:[self map] regionDidChangeAnimated:NO];
     }

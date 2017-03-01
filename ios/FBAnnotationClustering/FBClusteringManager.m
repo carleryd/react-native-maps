@@ -370,7 +370,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                 {
                     FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
                     [dotAnnotation setCoordinate:[mb coordinate]];
-                    [dotAnnotation setColor:[mb borderColor]];
+                    NSLog(@"gggg mb borderColor %@ alpha %f", [mb borderColor], [mb alpha]);
+                    [dotAnnotation setColor:[[mb borderColor] representedColor]];
+                    [dotAnnotation setAlpha:[mb alpha]];
                     
                     [annotationsToBeShown removeObject:mb];
                     [annotationsToBeShown addObject:dotAnnotation];

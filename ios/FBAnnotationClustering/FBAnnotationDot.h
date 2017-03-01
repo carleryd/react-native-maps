@@ -20,4 +20,6 @@
 
 @property (nonatomic, strong) UIColor *color;
 
+@property (nonatomic, assign) CGFloat alpha;
+
 @end
