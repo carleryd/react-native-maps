@@ -106,12 +106,20 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     [self.lock unlock];
 }
 
+/**
+ * This function is called by the MapView to cluster created markers.
+ * Currently we only cluster AIRMapAheadMarkers.
+ */
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
     return [self largestFirstClusteringWithMapRect:rect];
-//    return [self largestFirstClusteringWithMapRect:rect withZoomScale:zoomScale withFilter:nil];
 }
 
+/**
+ * Original function used by FBAnnotationClustering.
+ * It uses a grid-based algorithm which is suitable for clustering huge amounts of markers(1000+).
+ * Time complexity is O(n^2) where n^2 is the amount of cells in the grid.
+ */
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
                                  withZoomScale:(double)zoomScale
                                     withFilter:(BOOL (^)(id<MKAnnotation>)) filter
@@ -250,7 +258,41 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     return combinedRadius > pixelHypotenuse;
 }
 
+/**
+ * Since we don't remove and re-add AIRMapAheadMarker's when they change the amount of markers the
+ * MapView won't call getAnnotationView() on the markers so we need to update the MKAnnotationView 
+ * of the markers that have changed.
+ */
+- (void)updateCoverAmountIndicatorForAnnotations:(NSArray *)annotations
+{
+    NSInteger clusterIndicatorTag = 1234;
+    for (AIRMapAheadMarker *aheadMarker in annotations) {
+        if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+        MKAnnotationView *anView = [aheadMarker getAnnotationView];
+        for (UIView *subview in [anView subviews]) {
+            if ([subview tag] == clusterIndicatorTag) {
+                [subview removeFromSuperview];
+            }
+        }
+        if (aheadMarker.coveringMarkers.count > 0) {
+            UIColor *color = [[aheadMarker borderColor] representedColor];
+            NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
+            UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
+                                                                         withAmountInCluster:amountInCluster
+                                                                           usingMarkerRadius:[aheadMarker radius]
+                                                                     withClusterIndicatorTag:clusterIndicatorTag
+                                  ];
+            
+            [anView addSubview:labelView];
+        }
+    }
+}
 
+/**
+ * Our own clustering function.
+ * It checks markers against each other and creates clusters based on the largest markers.
+ * Time complexity is O(n^2) where n is the amount of markers.
+ */
 - (NSArray *)largestFirstClusteringWithMapRect:(MKMapRect)mapRect
 {
     CGRect screenRect = [[UIScreen mainScreen] bounds];
@@ -283,10 +325,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
     
-//    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
-//        [marker setHiddenByCluster:NO];
-//    }
-    
     /**
      * Beginning at head, look through list and check each annotation against the rest
      */
@@ -295,7 +333,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
         [[ma coveringMarkers] removeAllObjects];
         // Ignore ma if it is already clustered.
         if ([coveredAnnotations containsObject:ma]) continue;
-//        NSMutableArray *coveredByA = [[NSMutableArray alloc] init];
         
         /**
          * Check marker ma against each marker mb to determine if mb should be covered by ma.
@@ -312,10 +349,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                                  againstMarkerB:mb
                                    usingMapRect:mapRect
                                 usingScreenRect:screenRect
-                 ] == YES) {
-//                [coveredByA addObject:mb]; Remove cal;ksjdflk
+                 ] == YES)
+            {
                 [[ma coveringMarkers] addObject:mb];
-//                    [mb setHiddenByCluster:YES];
                 [annotationsToBeShown removeObject:mb];
                 [coveredAnnotations addObject:mb];
             }
@@ -326,14 +362,12 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * If it has been covered by another marker, ignore it.
          */
         if ([[ma coveringMarkers] count] > 0) {
-//            [ma setCoveringMarkers:coveredByA];
             [annotationsToBeShown addObject:ma];
         } else if ([coveredAnnotations member:ma] == false) {
             /**
              * A marker is not covered and will be shown as a non-cluster.
              */
-//            [annotationsToBeShown removeObjectsInArray:[ma coveringMarkers]];
-            [[ma coveringMarkers] removeAllObjects]; // TODO: remove?
+            [[ma coveringMarkers] removeAllObjects];
             [annotationsToBeShown addObject:ma];
         }
     }
@@ -353,65 +387,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     [self.lock unlock];
     
     return annotations;
-}
-
-- (void)displayAnnotations2:(NSArray *)annotations onMapView:(MKMapView *)mapView
-{
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
-        NSMutableArray *changedAnnotations = [[NSMutableArray alloc] init];
-        
-        MKUserLocation *userLocation = [mapView userLocation];
-        if (userLocation) {
-            [before removeObject:userLocation];
-        }
-        NSSet *after = [NSSet setWithArray:annotations];
-
-        NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
-        [toKeep intersectSet:after];
-        
-        NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
-        [toAdd minusSet:toKeep];
-
-        NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
-        [toRemove minusSet:after];
-        
-        NSLog(@"aaaa toAdd size %i toRemove size %i", [toAdd count], [toRemove count]);
-        
-        /**
-         * toAdd and toRemove contain too many annotations for some reason.
-         * We need to filter them further so that the same annotations are not removed and
-         * added here.
-         */
-    
-        [mapView addAnnotations:[toAdd allObjects]];
-        [mapView removeAnnotations:[toRemove allObjects]];
-        NSLog(@"hhhh mapView annotations count %i", [[mapView annotations] count]);
-        
-        NSInteger clusterIndicatorTag = 1234;
-        for (AIRMapAheadMarker *aheadMarker in annotations) {
-            if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-            MKAnnotationView *anView = [aheadMarker getAnnotationView];
-            for (UIView *subview in [anView subviews]) {
-                if ([subview tag] == clusterIndicatorTag) {
-                     NSLog(@"rrrr removing cluster tag");
-                    [subview removeFromSuperview];
-                }
-            }
-            if (aheadMarker.coveringMarkers.count > 0) {
-                 NSLog(@"rrrr adding cluster tag %i", aheadMarker.coveringMarkers.count);
-                UIColor *color = [[aheadMarker borderColor] representedColor];
-                NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-                UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
-                                                                  withAmountInCluster:amountInCluster
-                                                                    usingMarkerRadius:[aheadMarker radius]
-                                                              withClusterIndicatorTag:clusterIndicatorTag
-                                      ];
-                
-                [anView addSubview:labelView];
-            }
-        }
-    }];
 }
 
 - (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
@@ -436,28 +411,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [mapView addAnnotations:[toAdd allObjects]];
         [mapView removeAnnotations:[toRemove allObjects]];
-        
-        NSInteger clusterIndicatorTag = 1234;
-        for (AIRMapAheadMarker *aheadMarker in annotations) {
-            if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-            MKAnnotationView *anView = [aheadMarker getAnnotationView];
-            for (UIView *subview in [anView subviews]) {
-                if ([subview tag] == clusterIndicatorTag) {
-                    [subview removeFromSuperview];
-                }
-            }
-            if (aheadMarker.coveringMarkers.count > 0) {
-                UIColor *color = [[aheadMarker borderColor] representedColor];
-                NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-                UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
-                                                                             withAmountInCluster:amountInCluster
-                                                                               usingMarkerRadius:[aheadMarker radius]
-                                                                         withClusterIndicatorTag:clusterIndicatorTag
-                                      ];
-                
-                [anView addSubview:labelView];
-            }
-        }
+        [self updateCoverAmountIndicatorForAnnotations:annotations];
     }];
 }
 
