@@ -26,7 +26,7 @@
 #import "SMCalloutView.h"
 #import "AIRMapUrlTile.h"
 #import "AIRMapSnapshot.h"
-#import "AIRMapUtilities.h"
+#import "AIRMapAheadMarkerUtilities.h"
 #import "NSString+Color.h"
 
 #import <MapKit/MapKit.h>
@@ -525,7 +525,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
             UIColor *color = [[aheadMarker borderColor] representedColor];
             NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
             NSLog(@"rrrr viewForAnnotation amountInCluster %i", amountInCluster);
-            UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:color
+            UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
                                                               withAmountInCluster:amountInCluster
                                                                 usingMarkerRadius:[aheadMarker radius]
                                                           withClusterIndicatorTag:clusterIndicatorTag
@@ -749,8 +749,8 @@ static int kDragCenterContext;
      * 1. Revert marker opacity to what it was before(problems with JS atm).
      * 2. Set last marker pressed to nil.
      */
-    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    AIRMapAheadMarker* marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
+    AIRMapAheadMarkerUtilities *utilities = [AIRMapAheadMarkerUtilities sharedInstance];
+    AIRMapAheadMarker* marker = [[AIRMapAheadMarkerUtilities sharedInstance] prevPressedMarker];
     float newAlpha = (marker.importantStatus.isImportant == YES)
         ? 1.0
         : marker.importantStatus.unimportantOpacity;

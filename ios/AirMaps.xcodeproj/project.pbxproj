@@ -24,7 +24,7 @@
 		1125B2F21C4AD445007D0023 /* SMCalloutView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1125B2F11C4AD445007D0023 /* SMCalloutView.m */; };
 		9F34256E1E3F812200752582 /* NSString+Color.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F34256D1E3F812200752582 /* NSString+Color.m */; };
 		9F3779291E5D92CD00798E0C /* AIRMapAheadMarker.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */; };
-		9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */; };
+		9F3BA0041DF98AE50017D089 /* AIRMapAheadMarkerUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3BA0031DF98AE50017D089 /* AIRMapAheadMarkerUtilities.m */; };
 		9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */; };
 		9F7EA4DE1E5B0DEB00AFA5DA /* FBClusteringManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */; };
 		9F7EA4DF1E5B0DEB00AFA5DA /* FBQuadTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */; };
@@ -82,8 +82,8 @@
 		9F34256D1E3F812200752582 /* NSString+Color.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Color.m"; sourceTree = "<group>"; };
 		9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapAheadMarker.m; sourceTree = "<group>"; };
 		9F37792A1E5D92E500798E0C /* AIRMapAheadMarker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIRMapAheadMarker.h; sourceTree = "<group>"; };
-		9F3BA0021DF98AE50017D089 /* AIRMapUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapUtilities.h; sourceTree = "<group>"; };
-		9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapUtilities.m; sourceTree = "<group>"; };
+		9F3BA0021DF98AE50017D089 /* AIRMapAheadMarkerUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRMapAheadMarkerUtilities.h; sourceTree = "<group>"; };
+		9F3BA0031DF98AE50017D089 /* AIRMapAheadMarkerUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRMapAheadMarkerUtilities.m; sourceTree = "<group>"; };
 		9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		9F7EA4D41E5B0DEA00AFA5DA /* FBAnnotationCluster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationCluster.h; sourceTree = "<group>"; };
 		9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBAnnotationCluster.m; sourceTree = "<group>"; };
@@ -135,8 +135,8 @@
 			children = (
 				9F34256C1E3F812200752582 /* NSString+Color.h */,
 				9F34256D1E3F812200752582 /* NSString+Color.m */,
-				9F3BA0021DF98AE50017D089 /* AIRMapUtilities.h */,
-				9F3BA0031DF98AE50017D089 /* AIRMapUtilities.m */,
+				9F3BA0021DF98AE50017D089 /* AIRMapAheadMarkerUtilities.h */,
+				9F3BA0031DF98AE50017D089 /* AIRMapAheadMarkerUtilities.m */,
 				1125B2BD1C4AD3DA007D0023 /* AIRMap.h */,
 				1125B2BE1C4AD3DA007D0023 /* AIRMap.m */,
 				1125B2BF1C4AD3DA007D0023 /* AIRMapCallout.h */,
@@ -275,7 +275,7 @@
 				DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */,
 				1125B2DE1C4AD3DA007D0023 /* AIRMapCircleManager.m in Sources */,
 				9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */,
-				9F3BA0041DF98AE50017D089 /* AIRMapUtilities.m in Sources */,
+				9F3BA0041DF98AE50017D089 /* AIRMapAheadMarkerUtilities.m in Sources */,
 				1125B2DC1C4AD3DA007D0023 /* AIRMapCalloutManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -10,7 +10,7 @@
 #import "FBQuadTree.h"
 #import "AIRMapMarker.h"
 #import "AIRMapAheadMarker.h"
-#import "AIRMapUtilities.h"
+#import "AIRMapAheadMarkerUtilities.h"
 #import "NSString+Color.h"
 
 static NSString * const kFBClusteringManagerLockName = @"co.infinum.clusteringLock";
@@ -355,7 +355,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     return annotations;
 }
 
-- (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
+- (void)displayAnnotations2:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
@@ -366,7 +366,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             [before removeObject:userLocation];
         }
         NSSet *after = [NSSet setWithArray:annotations];
-        NSLog(@"aaaa before size %i after size %i", [before count], [after count]);
 
         NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
         [toKeep intersectSet:after];
@@ -403,7 +402,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                  NSLog(@"rrrr adding cluster tag %i", aheadMarker.coveringMarkers.count);
                 UIColor *color = [[aheadMarker borderColor] representedColor];
                 NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-                UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:color
+                UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
                                                                   withAmountInCluster:amountInCluster
                                                                     usingMarkerRadius:[aheadMarker radius]
                                                               withClusterIndicatorTag:clusterIndicatorTag
@@ -415,10 +414,9 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     }];
 }
 
-- (void)displayAnnotations2:(NSArray *)annotations onMapView:(MKMapView *)mapView
+- (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
     NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
-    NSLog(@"hhhh mapView annotations count %i", [[mapView annotations] count]);
 
     MKUserLocation *userLocation = [mapView userLocation];
     if (userLocation) {
@@ -445,18 +443,16 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             MKAnnotationView *anView = [aheadMarker getAnnotationView];
             for (UIView *subview in [anView subviews]) {
                 if ([subview tag] == clusterIndicatorTag) {
-                     NSLog(@"rrrr removing cluster tag");
                     [subview removeFromSuperview];
                 }
             }
             if (aheadMarker.coveringMarkers.count > 0) {
-                 NSLog(@"rrrr adding cluster tag %i", aheadMarker.coveringMarkers.count);
                 UIColor *color = [[aheadMarker borderColor] representedColor];
                 NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-                UILabel *labelView = [AIRMapUtilities createClusterIndicatorWithColor:color
-                                                                  withAmountInCluster:amountInCluster
-                                                                    usingMarkerRadius:[aheadMarker radius]
-                                                              withClusterIndicatorTag:clusterIndicatorTag
+                UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
+                                                                             withAmountInCluster:amountInCluster
+                                                                               usingMarkerRadius:[aheadMarker radius]
+                                                                         withClusterIndicatorTag:clusterIndicatorTag
                                       ];
                 
                 [anView addSubview:labelView];

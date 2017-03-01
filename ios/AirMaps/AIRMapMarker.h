@@ -34,7 +34,7 @@
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
 @property (nonatomic, assign) double opacity;
-// TODO: Do something about this, its hacky
+// TODO: Create a special kind of AIRMapAheadDot or something
 @property (nonatomic, copy) NSString *dotColor;
 
 

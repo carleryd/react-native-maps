@@ -8,7 +8,7 @@
  */
 
 #import "AIRMapAheadMarker.h"
-#import "AIRMapUtilities.h"
+#import "AIRMapAheadMarkerUtilities.h"
 
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
@@ -21,7 +21,6 @@
 
 
 @implementation AIRMapAheadMarker { RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
-    MKPinAnnotationView *_pinView;
     MKAnnotationView *_anView;
 }
 
@@ -44,6 +43,7 @@
  * Using this information, we can determine if the click event on the screen hit our annotation.
  * Note: existsInMap is for some reason necessary because even though we remove annotations which
  *       are no longer visible(i.e. clustered) from the map, the hitTest is still performed on them.
+ * Note: Should maybe use a TouchRecognizer?
  */
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     CGPoint center = [[self map] convertCoordinate:[self coordinate] toPointToView:[self map]];
@@ -53,8 +53,8 @@
                                self.size.height);
     BOOL existsInMap = [[[self map] annotations] containsObject:self];
     
-    if (CGRectContainsPoint(bounds, point) && existsInMap) {
-        AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    if (CGRectContainsPoint(bounds, point) && existsInMap == YES) {
+        AIRMapAheadMarkerUtilities *utilities = [AIRMapAheadMarkerUtilities sharedInstance];
         AIRMapAheadMarker *marker = [utilities prevPressedMarker];
         
         if ([utilities prevPressedMarker] != nil) {

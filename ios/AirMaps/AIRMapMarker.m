@@ -8,7 +8,6 @@
  */
 
 #import "AIRMapMarker.h"
-#import "AIRMapUtilities.h"
 
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
@@ -70,22 +69,6 @@
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-//    NSLog(@"AIRY bounds %f", [self bounds].size.height);
-//    NSLog(@"AIRY bounds %f", [self bounds].size.width);
-//    NSLog(@"AIRY bounds %f", [self bounds].origin.x);
-//    NSLog(@"AIRY bounds %f", [self bounds].origin.y);
-//    NSLog(@"AIRY point %f", point.x);
-//    NSLog(@"AIRY point %f", point.y);
-//
-    if (CGRectContainsPoint(self.bounds, point)) {
-        AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    
-        if ([utilities prevPressedMarker] != nil) {
-            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
-        }
-        
-        [utilities setPrevPressedMarker:self];
-    }
     return [super hitTest:point withEvent:event];
 }
 
@@ -95,7 +78,7 @@
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextSaveGState(ctx);
-        
+    
     CGRect rect = CGRectMake(0, 0, 12, 12);
     CGContextSetFillColorWithColor(ctx, color.CGColor);
     CGContextFillEllipseInRect(ctx, rect);
@@ -140,7 +123,7 @@
          * See https://github.com/nicolasgoutaland/NSString-Color
          */
         UIColor *color = [_dotColor representedColor];
-        annotationView.image = [self createCircle:color];// TODO: Use function from AIRMapUtilities
+        annotationView.image = [self createCircle:color];
         
         return annotationView;
     } else {

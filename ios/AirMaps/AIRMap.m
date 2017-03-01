@@ -18,7 +18,7 @@
 #import "AIRMapCircle.h"
 #import <QuartzCore/QuartzCore.h>
 #import "AIRMapUrlTile.h"
-#import "AIRMapUtilities.h"
+#import "AIRMapAheadMarkerUtilities.h"
 
 const CLLocationDegrees AIRMapDefaultSpan = 0.005;
 const NSTimeInterval AIRMapRegionChangeObserveInterval = 0.1;
@@ -108,7 +108,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-//        [self addAnnotation:(id<MKAnnotation>)subview];
+        // Only add the annotation to the clusteringManager, it will then add it to the MapView.
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
@@ -143,12 +143,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self removeAnnotation:(id<MKAnnotation>) subview];
         [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-//        [self removeAnnotation:(id<MKAnnotation>) subview];
-        
-        AIRMapAheadMarker *marker = subview;
-        NSLog(@"aaaa REMOVING MARKER FROM CLUSTER");
         [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
-        
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
         }
@@ -195,7 +190,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  *    this is useful for touchesMoved.
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapAheadMarkerUtilities *utilities = [AIRMapAheadMarkerUtilities sharedInstance];
     AIRMapAheadMarker* marker = [utilities prevPressedMarker];
     if (marker != nil) {
         CGFloat newAlpha = marker.importantStatus.unimportantOpacity/2;
@@ -212,7 +207,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  * revert marker settings and set to no active marker pressed.
  */
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    AIRMapAheadMarkerUtilities *utilities = [AIRMapAheadMarkerUtilities sharedInstance];
     AIRMapAheadMarker* marker = [utilities prevPressedMarker];
 
     UITouch *touch = [[event allTouches] anyObject];
@@ -234,10 +229,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  * send markerPress to JS land and set to no active marker pressed.
  */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    AIRMapAheadMarker *marker = [[AIRMapUtilities sharedInstance] prevPressedMarker];
+    AIRMapAheadMarker *marker = [[AIRMapAheadMarkerUtilities sharedInstance] prevPressedMarker];
     if (marker != nil) {
         [self triggerMarkerPressWithMarker:marker];
-        [[AIRMapUtilities sharedInstance] setPrevPressedMarker:nil];
+        [[AIRMapAheadMarkerUtilities sharedInstance] setPrevPressedMarker:nil];
         
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
