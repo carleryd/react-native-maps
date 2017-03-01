@@ -108,7 +108,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-        [self addAnnotation:(id<MKAnnotation>)subview];
+//        [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];

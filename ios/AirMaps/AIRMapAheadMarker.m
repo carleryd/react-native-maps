@@ -28,32 +28,8 @@
 - (id)init {
     self = [super init];
     self.coveringMarkers = [[NSMutableArray alloc] init];
+    self.bounds = CGRectMake(0, 0, [self radius] * 2, [self radius] * 2);
     return self;
-}
-
-- (void)reactSetFrame:(CGRect)frame
-{
-    // Make sure we use the image size when available
-    CGSize size = self.image ? self.image.size : frame.size;
-    CGRect bounds = {CGPointZero, size};
-    
-    // The MapView is basically in charge of figuring out the center position of the marker view. If the view changed in
-    // height though, we need to compensate in such a way that the bottom of the marker stays at the same spot on the
-    // map.
-    CGFloat dy = (bounds.size.height - self.bounds.size.height) / 2;
-    CGPoint center = (CGPoint){ self.center.x, self.center.y - dy };
-    
-    // Avoid crashes due to nan coords
-    if (isnan(center.x) || isnan(center.y) ||
-        isnan(bounds.origin.x) || isnan(bounds.origin.y) ||
-        isnan(bounds.size.width) || isnan(bounds.size.height)) {
-        RCTLogError(@"Invalid layout for (%@)%@. position: %@. bounds: %@",
-                    self.reactTag, self, NSStringFromCGPoint(center), NSStringFromCGRect(bounds));
-        return;
-    }
-    
-    self.center = center;
-    self.bounds = bounds;
 }
 
 - (void)insertReactSubview:(id<RCTComponent>)subview atIndex:(NSInteger)atIndex {
@@ -64,14 +40,21 @@
     [super removeReactSubview:(UIView *)subview];
 }
 
+/**
+ * We need to determine where on the map our annotation is and then determine how large it is.
+ * Using this information, we can determine if the click event on the screen hit our annotation.
+ * Note: existsInMap is for some reason necessary because even though we remove annotations which
+ *       are no longer visible(i.e. clustered) from the map, the hitTest is still performed on them.
+ */
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     CGPoint center = [[self map] convertCoordinate:[self coordinate] toPointToView:[self map]];
-    CGRect bounds = CGRectMake(center.x - [self radius],
-                               center.y - [self radius],
-                               [self radius] * 2,
-                               [self radius] * 2);
+    CGRect bounds = CGRectMake(center.x - self.bounds.size.width/2 ,
+                               center.y - self.bounds.size.height/2,
+                               self.bounds.size.width,
+                               self.bounds.size.height);
+    BOOL existsInMap = [[[self map] annotations] containsObject:self];
     
-    if (CGRectContainsPoint(bounds, point) && [self hiddenByCluster] == NO) { // TODO: Hacky hiddenByCluster
+    if (CGRectContainsPoint(bounds, point) && existsInMap) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
         AIRMapAheadMarker *marker = [utilities prevPressedMarker];
         
