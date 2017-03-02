@@ -47,6 +47,67 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
     }
 }
 
+
+/**
+ * Our marker radius is defined in pixels but our current map size is defined in MKMapRect dimensions.
+ * What we need to do is convert the marker's coordinates to points in this MKMapRect and then obtain
+ * a way to convert these points to pixels and vice versa.
+ * When we have the distance between two markers in pixels we can determine whether two markers collide.
+ */
+
+MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
+                               AIRMapAheadMarker *mb,
+                               MKMapRect mapRect,
+                               CGRect screenRect)
+{
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+    CGFloat rectWidth = mapRect.size.width;
+    CGFloat rectHeight = mapRect.size.height;
+    CGFloat pixelPerRectPointX = screenWidth / rectWidth;
+    CGFloat pixelPerRectPointY = screenHeight / rectHeight;
+    
+    CGFloat latA = ma.coordinate.latitude;
+    CGFloat lngA = ma.coordinate.longitude;
+    MKMapPoint pointA = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latA, lngA));
+    
+    CGFloat latB = mb.coordinate.latitude;
+    CGFloat lngB = mb.coordinate.longitude;
+    MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
+    
+    CGFloat distanceX = fabsf(pointA.x - pointB.x);
+    CGFloat distanceY = fabsf(pointA.y - pointB.y);
+    CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
+    CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
+    CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
+    CGFloat combinedRadius = [ma radius] + [mb radius];
+    
+    MarkerCoveredState coveredState = ((pixelHypotenuse - [ma radius]) < 0)
+        ? FULLY_COVERED
+        : ((pixelHypotenuse - [ma radius] - [mb radius]) < 0)
+            ? PARTIALLY_COVERED
+            : NOT_COVERED;
+    
+    NSLog(@"zzzz setting coveredState %f %f %f", pixelHypotenuse, [ma radius], [mb radius]);
+    switch (coveredState) {
+        case NOT_COVERED:
+            NSLog(@"zzzz setting coveredState NOT_COVERED");
+            break;
+        case PARTIALLY_COVERED:
+            NSLog(@"zzzz setting coveredState PARTIALLY_COVERED");
+            break;
+        case FULLY_COVERED:
+            NSLog(@"zzzz setting coveredState FULLY_COVERED");
+            break;
+        default:
+            NSLog(@"zzzz setting coveredState default");
+            break;
+    }
+    
+    return coveredState;
+}
+
+
 #pragma mark - FBClusteringManager
 
 @interface FBClusteringManager ()
@@ -223,48 +284,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
 }
 
 /**
- * Our marker radius is defined in pixels but our current map size is defined in MKMapRect dimensions.
- * What we need to do is convert the marker's coordinates to points in this MKMapRect and then obtain
- * a way to convert these points to pixels and vice versa.
- * When we have the distance between two markers in pixels we can determine whether two markers collide.
- */
-- (BOOL)checkCollisionWithMarkerA:(AIRMapAheadMarker *)ma
-                   againstMarkerB:(AIRMapAheadMarker *)mb
-                     usingMapRect:(MKMapRect)mapRect
-                  usingScreenRect:(CGRect)screenRect
-{
-    CGFloat screenWidth = screenRect.size.width;
-    CGFloat screenHeight = screenRect.size.height;
-    CGFloat rectWidth = mapRect.size.width;
-    CGFloat rectHeight = mapRect.size.height;
-    CGFloat pixelPerRectPointX = screenWidth / rectWidth;
-    CGFloat pixelPerRectPointY = screenHeight / rectHeight;
-    
-    CGFloat latA = ma.coordinate.latitude;
-    CGFloat lngA = ma.coordinate.longitude;
-    MKMapPoint pointA = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latA, lngA));
-    
-    CGFloat latB = mb.coordinate.latitude;
-    CGFloat lngB = mb.coordinate.longitude;
-    MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
-    
-    CGFloat distanceX = fabsf(pointA.x - pointB.x);
-    CGFloat distanceY = fabsf(pointA.y - pointB.y);
-    CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
-    CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
-    CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
-    CGFloat combinedRadius = [ma radius] + [mb radius];
-    
-    MarkerCoveredState coveredState = ((pixelHypotenuse - [ma radius]) < 0)
-        ? FULLY_COVERED
-        : ((pixelHypotenuse - [ma radius] - [mb radius]) < 0)
-            ? PARTIALLY_COVERED
-            : NOT_COVERED;
-    
-    return coveredState;
-}
-
-/**
  * Since we don't remove and re-add AIRMapAheadMarker's when they change the amount of markers the
  * MapView won't call getAnnotationView() on the markers so we need to update the MKAnnotationView 
  * of the markers that have changed.
@@ -301,6 +320,8 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
  */
 - (NSArray *)largestFirstClusteringWithMapRect:(MKMapRect)mapRect
 {
+    [self.lock lock];
+    
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     /**
      * annotationsToBeShown - Keeps track of the annotations which will later be added to the mapView.
@@ -308,8 +329,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
      */
     NSMutableArray *annotationsToBeShown = [[NSMutableArray alloc] init];
     NSMutableSet *coveredAnnotations = [[NSMutableSet alloc] init];
-    
-    [self.lock lock];
     
 
     /**
@@ -323,29 +342,73 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * when calculating clustering and instead just add them directly.
          */
         if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+            AIRMapAheadMarker *marker = obj;
+            [marker setCoveredState:NOT_COVERED];
             [aheadMarkers addObject:obj];
         } else {
             [annotationsToBeShown addObject:obj];
         }
     }];
+    // At this point we know we have 2 AIRMapAheadMarkers
+    // Now we need to find out why one stays a dot after it has become one.
     
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
+    NSLog(@"zzzz ################################");
+//    NSLog(@"zzzz BEFORE, BEFORE RESET");
+//    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
+//        switch ([marker coveredState]) {
+//            case NOT_COVERED:
+//                NSLog(@"zzzz NOT_COVERED");
+//                break;
+//            case PARTIALLY_COVERED:
+//                NSLog(@"zzzz PARTIALLY_COVERED");
+//                break;
+//            case FULLY_COVERED:
+//                NSLog(@"zzzz FULLY_COVERED");
+//                break;
+//            default:
+//                NSLog(@"zzzz default");
+//                break;
+//        }
+//    }
     
     /**
      * Reset all markers coverState.
      */
+//    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
+//        [marker setCoveredState:NOT_COVERED];
+//    }
+    
+    NSLog(@"zzzz BEFORE, AFTER RESET");
     for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
-        [marker setCoveredState:NOT_COVERED];
+        switch ([marker coveredState]) {
+            case NOT_COVERED:
+                NSLog(@"zzzz NOT_COVERED");
+                break;
+            case PARTIALLY_COVERED:
+                NSLog(@"zzzz PARTIALLY_COVERED");
+                break;
+            case FULLY_COVERED:
+                NSLog(@"zzzz FULLY_COVERED");
+                break;
+            default:
+                NSLog(@"zzzz default");
+                break;
+        }
     }
     
     /**
      * Beginning at head, look through list and check each annotation against the rest
      */
+    [coveredAnnotations removeAllObjects];
     for (int a = 0; a < [sortedAheadMarkers count]; ++a) {
         AIRMapAheadMarker *ma = [sortedAheadMarkers objectAtIndex:a];
         [[ma coveringMarkers] removeAllObjects];
         // Ignore ma if it is already clustered.
-        if ([coveredAnnotations containsObject:ma]) continue;
+        if ([coveredAnnotations containsObject:ma]) {
+            NSLog(@"aaaa A skipping due to coveredAnnotations");
+            continue;
+        }
         
         /**
          * Check marker ma against each marker mb to determine if mb should be covered by ma.
@@ -356,21 +419,27 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             if (a >= b) continue;
             AIRMapAheadMarker *mb = [sortedAheadMarkers objectAtIndex:b];
             // Ignore mb if it is already clustered.
-            if ([coveredAnnotations containsObject:mb]) continue;
+            if ([coveredAnnotations containsObject:mb]) {
+                NSLog(@"aaaa B skipping due to coveredAnnotations");
+                continue;
+            }
             
-            MarkerCoveredState coveredState = [self checkCollisionWithMarkerA:ma
-                                                               againstMarkerB:mb
-                                                                 usingMapRect:mapRect
-                                                              usingScreenRect:screenRect
-                                               ];
-            switch (coveredState) {
+//            MarkerCoveredState mbCoveredState = checkCollisionWithMarkerA:ma
+//                                                            againstMarkerB:mb
+//                                                              usingMapRect:mapRect
+//                                                           usingScreenRect:screenRect
+//                                                 ];
+            MarkerCoveredState mbCoveredState = checkCollisionWithMarkerA(ma, mb, mapRect, screenRect);
+            
+            switch (mbCoveredState) {
                 case NOT_COVERED:
+                    NSLog(@"zzzz mb NOT_COVERED");
                     break;
                 case PARTIALLY_COVERED:
                 {
+                    NSLog(@"zzzz mb PARTIALLY_COVERED");
                     FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
                     [dotAnnotation setCoordinate:[mb coordinate]];
-                    NSLog(@"gggg mb borderColor %@ alpha %f", [mb borderColor], [mb alpha]);
                     [dotAnnotation setColor:[[mb borderColor] representedColor]];
                     [dotAnnotation setAlpha:[mb alpha]];
                     
@@ -381,6 +450,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
                     break;
                 case FULLY_COVERED:
                 {
+                    NSLog(@"zzzz mb PARTIALLY_COVERED");
                     [[ma coveringMarkers] addObject:mb];
                     [annotationsToBeShown removeObject:mb];
                     [coveredAnnotations addObject:mb];
@@ -391,7 +461,7 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
             }
             
             if ([mb coveredState] == NOT_COVERED) {
-                [mb setCoveredState:coveredState];
+                [mb setCoveredState:mbCoveredState];
             }
 
         }
@@ -401,13 +471,34 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
          * If it has been covered by another marker, ignore it.
          */
         if ([[ma coveringMarkers] count] > 0) {
+            NSLog(@"aaaa ADDED AS CLUSTER");
             [annotationsToBeShown addObject:ma];
         } else if ([coveredAnnotations member:ma] == false) {
+            NSLog(@"aaaa ADDED AS NORMAL");
             /**
              * A marker is not covered and will be shown as a non-cluster.
              */
             [[ma coveringMarkers] removeAllObjects];
             [annotationsToBeShown addObject:ma];
+        } else {
+            NSLog(@"aaaa NOT ADDED!!!!");
+        }
+    }
+    NSLog(@"zzzz AFTER");
+    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
+        switch ([marker coveredState]) {
+            case NOT_COVERED:
+                NSLog(@"zzzz NOT_COVERED");
+                break;
+            case PARTIALLY_COVERED:
+                NSLog(@"zzzz PARTIALLY_COVERED");
+                break;
+            case FULLY_COVERED:
+                NSLog(@"zzzz FULLY_COVERED");
+                break;
+            default:
+                NSLog(@"zzzz default");
+                break;
         }
     }
     [self.lock unlock];

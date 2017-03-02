@@ -711,26 +711,77 @@ static int kDragCenterContext;
      * If we use clustering, trigger cluster for new region.
      */
     if (mapView.clusterMarkers) {
-        void (^triggerClustering)();
-        triggerClustering = ^void {
+//        void (^triggerClustering)();
+//        triggerClustering = ^void {
             double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
             NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect
                                                                                   withZoomScale:scale
                                     ];
         
             [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-        };
+//        };
         
-        NSOperationQueue *q = [mapView nsOperationQueue];
+        
         /**
-         * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
-         * If this happens just cancel those operations and start a new one.
+         * Reset all markers coverState.
          */
-        if ([q operationCount] > 0) {
-            [q cancelAllOperations];
+        NSLog(@"zzzz BEFORE CLUSTERING BEFORE RESET");
+        for (id obj in [mapView annotations]) {
+            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+                AIRMapAheadMarker *marker = obj;
+                switch ([marker coveredState]) {
+                    case NOT_COVERED:
+                        NSLog(@"zzzz NOT_COVERED");
+                        break;
+                    case PARTIALLY_COVERED:
+                        NSLog(@"zzzz PARTIALLY_COVERED");
+                        break;
+                    case FULLY_COVERED:
+                        NSLog(@"zzzz FULLY_COVERED");
+                        break;
+                    default:
+                        NSLog(@"zzzz default");
+                        break;
+                }
+            }
         }
-        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
-        [q addOperation:operation];
+        for (id obj in [mapView annotations]) {
+            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+                AIRMapAheadMarker *marker = obj;
+                [marker setCoveredState:NOT_COVERED];
+            }
+        }
+        NSLog(@"zzzz BEFORE CLUSTERING AFTER RESET");
+        for (id obj in [mapView annotations]) {
+            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+                AIRMapAheadMarker *marker = obj;
+                switch ([marker coveredState]) {
+                    case NOT_COVERED:
+                        NSLog(@"zzzz NOT_COVERED");
+                        break;
+                    case PARTIALLY_COVERED:
+                        NSLog(@"zzzz PARTIALLY_COVERED");
+                        break;
+                    case FULLY_COVERED:
+                        NSLog(@"zzzz FULLY_COVERED");
+                        break;
+                    default:
+                        NSLog(@"zzzz default");
+                        break;
+                }
+            }
+        }
+
+//        NSOperationQueue *q = [mapView nsOperationQueue];
+//        /**
+//         * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
+//         * If this happens just cancel those operations and start a new one.
+//         */
+//        if ([q operationCount] > 0) {
+//            [q cancelAllOperations];
+//        }
+//        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
+//        [q addOperation:operation];
     }
 }
 
