@@ -91,6 +91,14 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
     return coveredState;
 }
 
+FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
+{
+    FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
+    [dotAnnotation setCoordinate:[marker coordinate]];
+    [dotAnnotation setColor:[[marker borderColor] representedColor]];
+    [dotAnnotation setAlpha:[marker alpha]];
+    return dotAnnotation;
+}
 
 #pragma mark - FBClusteringManager
 
@@ -278,11 +286,13 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
     for (AIRMapAheadMarker *aheadMarker in annotations) {
         if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
         MKAnnotationView *anView = [aheadMarker getAnnotationView];
+        // Remove any existing cluster indicators.
         for (UIView *subview in [anView subviews]) {
             if ([subview tag] == clusterIndicatorTag) {
                 [subview removeFromSuperview];
             }
         }
+        // Add cluster indicator if marker is a cluster.
         if (aheadMarker.coveringMarkers.count > 0) {
             UIColor *color = [[aheadMarker borderColor] representedColor];
             NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
@@ -328,7 +338,12 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
          */
         if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
             AIRMapAheadMarker *marker = obj;
+            /**
+             * Since we are going to re-calculate clustering on all markers, we need to make
+             * sure these values are all reset beforehand.
+             */
             [marker setCoveredState:NOT_COVERED];
+            [[marker coveringMarkers] removeAllObjects];
             [aheadMarkers addObject:obj];
         } else {
             [annotationsToBeShown addObject:obj];
@@ -338,23 +353,13 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
     
     /**
-     * Reset all markers coverState.
+     * Beginning at head, look through list and check collision between each annotation.
      */
-    for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
-        [marker setCoveredState:NOT_COVERED];
-    }
-    
-    /**
-     * Beginning at head, look through list and check each annotation against the rest
-     */
-    [coveredAnnotations removeAllObjects];
-    
     NSInteger aheadMarkerCount = 0;
     for (int a = 0; a < [sortedAheadMarkers count]; ++a) {
         AIRMapAheadMarker *ma = [sortedAheadMarkers objectAtIndex:a];
-        [[ma coveringMarkers] removeAllObjects];
         // Ignore ma if it is already clustered.
-        if ([coveredAnnotations containsObject:ma]) {
+        if ([ma coveredState] != NOT_COVERED) {
             continue;
         }
         
@@ -367,7 +372,7 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
             if (a >= b) continue;
             AIRMapAheadMarker *mb = [sortedAheadMarkers objectAtIndex:b];
             // Ignore mb if it is already clustered.
-            if ([coveredAnnotations containsObject:mb]) {
+            if ([mb coveredState] != NOT_COVERED) {
                 continue;
             }
             
@@ -377,23 +382,11 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
                 case NOT_COVERED:
                     break;
                 case PARTIALLY_COVERED:
-                {
-                    // TODO: Don't recreate if it is the same as before, if we fix this we can use animations.
-//                    FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
-//                    [dotAnnotation setCoordinate:[mb coordinate]];
-//                    [dotAnnotation setColor:[[mb borderColor] representedColor]];
-//                    [dotAnnotation setAlpha:[mb alpha]];
-                    
-                    [annotationsToBeShown removeObject:mb]; // TODO: Remove?
-//                    [annotationsToBeShown addObject:dotAnnotation];
-                    [coveredAnnotations addObject:mb];
-                }
                     break;
                 case FULLY_COVERED:
                 {
                     [[ma coveringMarkers] addObject:mb];
                     [annotationsToBeShown removeObject:mb];
-                    [coveredAnnotations addObject:mb];
                 }
                     break;
                 default:
@@ -403,7 +396,6 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
             if ([mb coveredState] == NOT_COVERED) {
                 [mb setCoveredState:mbCoveredState];
             }
-
         }
     }
     for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
@@ -414,14 +406,12 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
          */
         if (aheadMarkerCount < aheadMarkerLimit) {
             /**
-             * If it covers some markers, create a cluster.
-             * If it has not been a part of any clustering, simply add it.
-             * If it has been covered by another marker, ignore it.
+             * Here we start adding the markers which will end up on the map.
+             * Four outcomes: Cluster marker, standard marker, dot marker, no marker.
              */
             if ([[marker coveringMarkers] count] > 0) {
                 aheadMarkerCount++;
                 [annotationsToBeShown addObject:marker];
-//            } else if ([coveredAnnotations member:marker] == false) {
             } else {
                 switch ([marker coveredState]) {
                     case NOT_COVERED:
@@ -433,10 +423,7 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
                         break;
                     case PARTIALLY_COVERED:
                     {
-                        FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
-                        [dotAnnotation setCoordinate:[marker coordinate]];
-                        [dotAnnotation setColor:[[marker borderColor] representedColor]];
-                        [dotAnnotation setAlpha:[marker alpha]];
+                        FBAnnotationDot *dotAnnotation = createDotAnnotationFromMarker(marker);
                         [annotationsToBeShown addObject:dotAnnotation];
                     }
                         break;
@@ -445,21 +432,17 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
                     default:
                         break;
                 }
-                /**
-                 * A marker is not covered and will be shown as a non-cluster.
-                 */
-//                [[ma coveringMarkers] removeAllObjects];
-//                [annotationsToBeShown addObject:ma];
             }
         } else {
+            /**
+             * At this point we have created the amount of markers we wanted.
+             * The rest shall be dots, if visible, i.e. not FULLY_COVERED.
+             */
             switch ([marker coveredState]) {
                 case NOT_COVERED:
                 case PARTIALLY_COVERED:
                 {
-                    FBAnnotationDot *dotAnnotation = [[FBAnnotationDot alloc] init];
-                    [dotAnnotation setCoordinate:[marker coordinate]];
-                    [dotAnnotation setColor:[[marker borderColor] representedColor]];
-                    [dotAnnotation setAlpha:[marker alpha]];
+                    FBAnnotationDot *dotAnnotation = createDotAnnotationFromMarker(marker);
                     [annotationsToBeShown addObject:dotAnnotation];
                 }
                     break;

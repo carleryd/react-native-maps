@@ -674,7 +674,6 @@ static int kDragCenterContext;
 
 - (void)mapView:(AIRMap *)mapView regionDidChangeAnimated:(__unused BOOL)animated
 {
-    // NSLog(@"1234 delegate object AIRMapManager regionDidChangeAnimated");
     [mapView.regionChangeObserveTimer invalidate];
     mapView.regionChangeObserveTimer = nil;
 

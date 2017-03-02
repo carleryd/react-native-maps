@@ -17,7 +17,6 @@
 // to get rid of this if someone can show me how...
 + (AIRMapCoordinate *)AIRMapCoordinate:(id)json
 {
-    NSLog(@"ASDF coordinate %@", json);
     AIRMapCoordinate *coord = [AIRMapCoordinate new];
     coord.coordinate = [self CLLocationCoordinate2D:json];
     return coord;
@@ -33,7 +32,6 @@ RCT_ARRAY_CONVERTER(AIRMapCoordinate)
 + (ImportantStatus)ImportantStatus:(id)json
 {
     json = [self NSDictionary:json];
-    NSLog(@"ASDF json @%", json);
     return (ImportantStatus){
         [self BOOL:json[@"isImportant"]],
         [self float:json[@"unimportantOpacity"]]
