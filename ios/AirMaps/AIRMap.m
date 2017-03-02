@@ -108,7 +108,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-        NSLog(@"qqqq adding AIRMapAheadMarker");
         // Only add the annotation to the clusteringManager, it will then add it to the MapView.
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         if (self.clusterMarkers) {

@@ -507,49 +507,32 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 - (MKAnnotationView *)mapView:(__unused AIRMap *)mapView viewForAnnotation:(MKAnnotationView *)anView
 {
     if ([anView isKindOfClass:[FBAnnotationDot class]]) {
-        NSLog(@"gggg viewForAnnotation FBAnnotationDot");
         FBAnnotationDot *dot = (FBAnnotationDot *)anView;
-        NSLog(@"gggg viewForAnnotation color %@", [dot color]);
-        
-        static NSString* identifier = @"dotAnnotationView";
-        MKAnnotationView *dotAnView = [[MKAnnotationView alloc] initWithAnnotation:anView
-                                                                   reuseIdentifier:identifier
-                                       ];
-
-        dotAnView.enabled = false;
-        
-        /* Use NSString-Color library to intelligently convert string colors to hex.
-         * See https://github.com/nicolasgoutaland/NSString-Color
-         */
-        dotAnView.image = [AIRMapAheadMarkerUtilities createCircleWithColor:[dot color]
-                                                                 withRadius:5.0
-                           ];
-        [dotAnView setAlpha:[dot alpha]];
-        
-        return dotAnView;
+        return [dot getAnnotationView];
     }
+    
     NSInteger clusterIndicatorTag = 1234;
     if ([anView isKindOfClass:[AIRMapAheadMarker class]]) {
         AIRMapAheadMarker *aheadMarker = anView;
         aheadMarker.map = mapView;
+        MKAnnotationView *aheadAnView = [aheadMarker getAnnotationView];
         
         /**
          * AIRMapAheadMarker animation upon "creation".
          */
-        aheadMarker.transform = CGAffineTransformMakeScale(0, 0);
-        aheadMarker.enabled = false;
+        aheadAnView.transform = CGAffineTransformMakeScale(0, 0);
+        aheadAnView.enabled = false;
 
         [UIView animateWithDuration:0.25 delay:0.0 options:0 animations:^{
-            aheadMarker.transform = CGAffineTransformIdentity;
+            aheadAnView.transform = CGAffineTransformIdentity;
         } completion:^(BOOL finished){
-            aheadMarker.enabled = true;
+            aheadAnView.enabled = true;
         }];
         
         
         /**
          * Setting cluster indicator on marker if it is a cluster.
          */
-        MKAnnotationView *aheadAnView = [aheadMarker getAnnotationView];
         for (UIView *subview in [aheadAnView subviews]) {
             if ([subview tag] == clusterIndicatorTag) {
                 [subview removeFromSuperview];
@@ -558,7 +541,6 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
         if (aheadMarker.coveringMarkers.count > 0) {
             UIColor *color = [[aheadMarker borderColor] representedColor];
             NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-            NSLog(@"rrrr viewForAnnotation amountInCluster %i", amountInCluster);
             UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
                                                               withAmountInCluster:amountInCluster
                                                                 usingMarkerRadius:[aheadMarker radius]
@@ -711,77 +693,26 @@ static int kDragCenterContext;
      * If we use clustering, trigger cluster for new region.
      */
     if (mapView.clusterMarkers) {
-//        void (^triggerClustering)();
-//        triggerClustering = ^void {
+        void (^triggerClustering)();
+        triggerClustering = ^void {
             double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
             NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect
                                                                                   withZoomScale:scale
                                     ];
         
             [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-//        };
-        
-        
-        /**
-         * Reset all markers coverState.
-         */
-        NSLog(@"zzzz BEFORE CLUSTERING BEFORE RESET");
-        for (id obj in [mapView annotations]) {
-            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
-                AIRMapAheadMarker *marker = obj;
-                switch ([marker coveredState]) {
-                    case NOT_COVERED:
-                        NSLog(@"zzzz NOT_COVERED");
-                        break;
-                    case PARTIALLY_COVERED:
-                        NSLog(@"zzzz PARTIALLY_COVERED");
-                        break;
-                    case FULLY_COVERED:
-                        NSLog(@"zzzz FULLY_COVERED");
-                        break;
-                    default:
-                        NSLog(@"zzzz default");
-                        break;
-                }
-            }
-        }
-        for (id obj in [mapView annotations]) {
-            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
-                AIRMapAheadMarker *marker = obj;
-                [marker setCoveredState:NOT_COVERED];
-            }
-        }
-        NSLog(@"zzzz BEFORE CLUSTERING AFTER RESET");
-        for (id obj in [mapView annotations]) {
-            if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
-                AIRMapAheadMarker *marker = obj;
-                switch ([marker coveredState]) {
-                    case NOT_COVERED:
-                        NSLog(@"zzzz NOT_COVERED");
-                        break;
-                    case PARTIALLY_COVERED:
-                        NSLog(@"zzzz PARTIALLY_COVERED");
-                        break;
-                    case FULLY_COVERED:
-                        NSLog(@"zzzz FULLY_COVERED");
-                        break;
-                    default:
-                        NSLog(@"zzzz default");
-                        break;
-                }
-            }
-        }
+        };
 
-//        NSOperationQueue *q = [mapView nsOperationQueue];
-//        /**
-//         * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
-//         * If this happens just cancel those operations and start a new one.
-//         */
-//        if ([q operationCount] > 0) {
-//            [q cancelAllOperations];
-//        }
-//        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
-//        [q addOperation:operation];
+        NSOperationQueue *q = [mapView nsOperationQueue];
+        /**
+         * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
+         * If this happens just cancel those operations and start a new one.
+         */
+        if ([q operationCount] > 0) {
+            [q cancelAllOperations];
+        }
+        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
+        [q addOperation:operation];
     }
 }
 
