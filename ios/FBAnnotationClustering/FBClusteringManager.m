@@ -145,10 +145,8 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     /**
      * annotationsToBeShown - Keeps track of the annotations which will later be added to the mapView.
-     * coveredAnnotations - Keeps track of annotations which are covered by other annotations.
      */
     NSMutableArray *annotationsToBeShown = [[NSMutableArray alloc] init];
-    NSMutableSet *coveredAnnotations = [[NSMutableSet alloc] init];
     
 
     /**
