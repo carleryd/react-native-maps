@@ -169,9 +169,9 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             mIconGenerator = new IconGenerator(reactContext.getApplicationContext());
             mClusterIconGenerator = new IconGenerator(reactContext.getApplicationContext());
 
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+//            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
 
-            View multiProfile = inflater.inflate(R.layout.multi_profile, null);
+            View multiProfile = reactContext.getCurrentActivity().getLayoutInflater().inflate(R.layout.multi_profile, null);
             mClusterIconGenerator.setContentView(multiProfile);
             mClusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
 
@@ -576,8 +576,9 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         if (feature instanceof AirMapMarker) {
             markerMap.remove(feature.getFeature());
             mClusterManager.removeItem((AirMapMarker)feature);
+        }else{
+            feature.removeFromMap(map);
         }
-        feature.removeFromMap(map);
     }
 
     public WritableMap makeClickEventData(LatLng point) {
