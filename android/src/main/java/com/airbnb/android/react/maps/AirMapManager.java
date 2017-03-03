@@ -185,6 +185,11 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         view.map.getUiSettings().setTiltGesturesEnabled(pitchEnabled);
     }
 
+    @ReactProp(name="clusterMarkers", defaultBoolean = false)
+    public void setClusterMarkers(AirMapView view, boolean clusterMarkers) {
+         view.setClusterMarkers(clusterMarkers);
+    }
+
     @Override
     public void receiveCommand(AirMapView view, int commandId, @Nullable ReadableArray args) {
         Integer duration;
