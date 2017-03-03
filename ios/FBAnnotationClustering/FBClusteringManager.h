@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import "FBQuadTreeNode.h"
-#import "FBAnnotationCluster.h"
 #import "FBAnnotationDot.h"
 
 @class FBClusteringManager;

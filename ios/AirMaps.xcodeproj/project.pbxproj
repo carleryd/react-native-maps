@@ -26,7 +26,6 @@
 		9F3779291E5D92CD00798E0C /* AIRMapAheadMarker.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F3779281E5D92CD00798E0C /* AIRMapAheadMarker.m */; };
 		9F720EBA1E6843310022F815 /* AIRMapAheadMarkerUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F720EB91E6843310022F815 /* AIRMapAheadMarkerUtilities.m */; };
 		9F720EBD1E68433A0022F815 /* FBAnnotationDot.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F720EBC1E68433A0022F815 /* FBAnnotationDot.m */; };
-		9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */; };
 		9F7EA4DE1E5B0DEB00AFA5DA /* FBClusteringManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */; };
 		9F7EA4DF1E5B0DEB00AFA5DA /* FBQuadTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DA1E5B0DEA00AFA5DA /* FBQuadTree.m */; };
 		9F7EA4E01E5B0DEB00AFA5DA /* FBQuadTreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EA4DC1E5B0DEA00AFA5DA /* FBQuadTreeNode.m */; };
@@ -88,8 +87,6 @@
 		9F720EBB1E68433A0022F815 /* FBAnnotationDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationDot.h; sourceTree = "<group>"; };
 		9F720EBC1E68433A0022F815 /* FBAnnotationDot.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBAnnotationDot.m; sourceTree = "<group>"; };
 		9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
-		9F7EA4D41E5B0DEA00AFA5DA /* FBAnnotationCluster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationCluster.h; sourceTree = "<group>"; };
-		9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBAnnotationCluster.m; sourceTree = "<group>"; };
 		9F7EA4D61E5B0DEA00AFA5DA /* FBAnnotationClustering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBAnnotationClustering.h; sourceTree = "<group>"; };
 		9F7EA4D71E5B0DEA00AFA5DA /* FBClusteringManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBClusteringManager.h; sourceTree = "<group>"; };
 		9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBClusteringManager.m; sourceTree = "<group>"; };
@@ -188,8 +185,6 @@
 				9F720EBB1E68433A0022F815 /* FBAnnotationDot.h */,
 				9F720EBC1E68433A0022F815 /* FBAnnotationDot.m */,
 				9F7EA4D31E5B0DEA00AFA5DA /* .gitkeep */,
-				9F7EA4D41E5B0DEA00AFA5DA /* FBAnnotationCluster.h */,
-				9F7EA4D51E5B0DEA00AFA5DA /* FBAnnotationCluster.m */,
 				9F7EA4D61E5B0DEA00AFA5DA /* FBAnnotationClustering.h */,
 				9F7EA4D71E5B0DEA00AFA5DA /* FBClusteringManager.h */,
 				9F7EA4D81E5B0DEA00AFA5DA /* FBClusteringManager.m */,
@@ -280,7 +275,6 @@
 				1125B2E21C4AD3DA007D0023 /* AIRMapMarkerManager.m in Sources */,
 				DA6C26381C9E2AFE0035349F /* AIRMapUrlTile.m in Sources */,
 				1125B2DE1C4AD3DA007D0023 /* AIRMapCircleManager.m in Sources */,
-				9F7EA4DD1E5B0DEB00AFA5DA /* FBAnnotationCluster.m in Sources */,
 				9F720EBA1E6843310022F815 /* AIRMapAheadMarkerUtilities.m in Sources */,
 				1125B2DC1C4AD3DA007D0023 /* AIRMapCalloutManager.m in Sources */,
 			);

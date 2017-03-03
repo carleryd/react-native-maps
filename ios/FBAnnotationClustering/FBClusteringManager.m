@@ -6,46 +6,11 @@
 //  Copyright (c) 2014 Infinum Ltd. All rights reserved.
 //
 
-#import "FBClusteringManager.h"
 #import "FBQuadTree.h"
 #import "AIRMapMarker.h"
 #import "AIRMapAheadMarker.h"
 #import "AIRMapAheadMarkerUtilities.h"
 #import "NSString+Color.h"
-
-static NSString * const kFBClusteringManagerLockName = @"co.infinum.clusteringLock";
-
-#pragma mark - Utility functions
-
-NSInteger FBZoomScaleToZoomLevel(MKZoomScale scale)
-{
-    double totalTilesAtMaxZoom = MKMapSizeWorld.width / 256.0;
-    NSInteger zoomLevelAtMaxZoom = log2(totalTilesAtMaxZoom);
-    NSInteger zoomLevel = MAX(0, zoomLevelAtMaxZoom + floor(log2f(scale) + 0.5));
-    
-    return zoomLevel;
-}
-
-CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
-{
-    NSInteger zoomLevel = FBZoomScaleToZoomLevel(zoomScale);
-    
-    switch (zoomLevel) {
-        case 13:
-        case 14:
-        case 15:
-            return 64;
-        case 16:
-        case 17:
-        case 18:
-            return 32;
-        case 19:
-            return 16;
-            
-        default:
-            return 88;
-    }
-}
 
 
 /**
@@ -54,7 +19,6 @@ CGFloat FBCellSizeForZoomScale(MKZoomScale zoomScale)
  * a way to convert these points to pixels and vice versa.
  * When we have the distance between two markers in pixels we can determine whether two markers collide.
  */
-
 MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
                                AIRMapAheadMarker *mb,
                                MKMapRect mapRect,
@@ -166,145 +130,6 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
     return [self largestFirstClusteringWithMapRect:rect withAheadMarkerLimit:5];
-}
-
-/**
- * Original function used by FBAnnotationClustering.
- * It uses a grid-based algorithm which is suitable for clustering huge amounts of markers(1000+).
- * Time complexity is O(n^2) where n^2 is the amount of cells in the grid.
- */
-- (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
-                                 withZoomScale:(double)zoomScale
-                                    withFilter:(BOOL (^)(id<MKAnnotation>)) filter
-{
-    double cellSize = FBCellSizeForZoomScale(zoomScale);
-    if ([self.delegate respondsToSelector:@selector(cellSizeFactorForCoordinator:)]) {
-        cellSize *= [self.delegate cellSizeFactorForCoordinator:self];
-    }
-    double scaleFactor = zoomScale / cellSize;
-    
-    NSInteger minX = floor(MKMapRectGetMinX(rect) * scaleFactor);
-    NSInteger maxX = floor(MKMapRectGetMaxX(rect) * scaleFactor);
-    NSInteger minY = floor(MKMapRectGetMinY(rect) * scaleFactor);
-    NSInteger maxY = floor(MKMapRectGetMaxY(rect) * scaleFactor);
-    
-    NSMutableArray *annotationsToBeShown = [[NSMutableArray alloc] init];
-    
-    [self.lock lock];
-    /**
-     * Iterate through current region and check static rect sizes at all positions in this region
-     * to check if two or more annotations exist in one of these rects and if so, cluster them.
-     */
-    for (NSInteger x = minX; x <= maxX; x++) {
-        for (NSInteger y = minY; y <= maxY; y++) {
-            MKMapRect mapRect = MKMapRectMake(x/scaleFactor, y/scaleFactor, 1.0/scaleFactor, 1.0/scaleFactor);
-            FBBoundingBox mapBox = FBBoundingBoxForMapRect(mapRect);
-            
-            __block double totalLatitude = 0;
-            __block double totalLongitude = 0;
-            
-            NSMutableArray *annotations = [[NSMutableArray alloc] init];
-
-            /**
-             * Iterate through found annotations in current rect and, if any found,
-             * add them to 'annotations'.
-             */
-            [self.tree enumerateAnnotationsInBox:mapBox usingBlock:^(id<MKAnnotation> obj) {
-                if(!filter || (filter(obj) == TRUE))
-                {
-                    totalLatitude += [obj coordinate].latitude;
-                    totalLongitude += [obj coordinate].longitude;
-                    [annotations addObject:obj];
-                }
-            }];
-            
-            /**
-             * Three cases:
-             * 1. No annotations found in 'annotations' => Skip to next rect.
-             * 2. Only 1 annotation found in 'annotations' => Add to 'annotationsToBeShown'.
-             * 3. Several annotations found in 'annotations' => Create cluster and add to
-             *      'annotationsToBeShown'.
-             */
-            NSInteger count = [annotations count];
-            if (count == 1) {
-                [annotationsToBeShown addObjectsFromArray:annotations];
-            } else if (count > 1) {
-                CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(totalLatitude/count, totalLongitude/count);
-                FBAnnotationCluster *cluster = [[FBAnnotationCluster alloc] init];
-                cluster.coordinate = coordinate;
-                cluster.annotations = annotations;
-                [annotationsToBeShown addObject:cluster];
-            }
-        }
-    }
-    [self.lock unlock];
-    
-    return [NSArray arrayWithArray:annotationsToBeShown];
-}
-
-/**
- * Sort annotations based on radius and importance of marker.
- */
-- (NSArray *)sortMarkersBasedOnRadius:(NSArray *)aheadMarkers {
-    NSArray *sortedAheadMarkers;
-    sortedAheadMarkers = [aheadMarkers sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-        AIRMapAheadMarker *markerA = a;
-        AIRMapAheadMarker *markerB = b;
-        NSInteger largerThanMaxRadius = 1000;
-        NSInteger penaltyA = (markerA.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
-        NSInteger penaltyB = (markerB.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
-        CGFloat importanceA = [markerA radius] - penaltyA;
-        CGFloat importanceB = [markerB radius] - penaltyB;
-        if (importanceA > importanceB) return (NSComparisonResult)NSOrderedAscending;
-        else if (importanceB > importanceA) return (NSComparisonResult)NSOrderedDescending;
-        /**
-         * We want to avoid NSOrderedSame to be returned because it can cause re-clustering to
-         * give different results with the same initial list of annotations which cause clusters
-         * to change places with only a slight move of the map.
-         */
-        else {
-            BOOL greaterLatitude = markerA.coordinate.latitude > markerB.coordinate.latitude;
-            BOOL greaterLongitude = markerA.coordinate.longitude > markerB.coordinate.longitude;
-            if (greaterLatitude == YES || greaterLongitude == YES) {
-                return (NSComparisonResult)NSOrderedAscending;
-            } else {
-                return (NSComparisonResult)NSOrderedSame;
-            }
-        }
-    }];
-    return sortedAheadMarkers;
-}
-
-/**
- * Since we don't remove and re-add AIRMapAheadMarker's when they change the amount of markers the
- * MapView won't call getAnnotationView() on the markers so we need to update the MKAnnotationView 
- * of the markers that have changed.
- */
-- (void)updateCoverAmountIndicatorForAnnotations:(NSArray *)annotations
-{
-    NSInteger clusterIndicatorTag = 1234;
-    for (AIRMapAheadMarker *aheadMarker in annotations) {
-        if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
-        MKAnnotationView *anView = [aheadMarker getAnnotationView];
-        // Remove any existing cluster indicators.
-        for (UIView *subview in [anView subviews]) {
-            if ([subview tag] == clusterIndicatorTag) {
-                [subview removeFromSuperview];
-            }
-        }
-        // Add cluster indicator if marker is a cluster.
-        if (aheadMarker.coveringMarkers.count > 0) {
-            UIColor *color = [[aheadMarker borderColor] representedColor];
-            NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
-            UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
-                                                                         withAmountInCluster:amountInCluster
-                                                                           usingMarkerRadius:[aheadMarker radius]
-                                                                     withClusterIndicatorTag:clusterIndicatorTag
-                                  ];
-            
-            [anView addSubview:labelView];
-        }
-    }
 }
 
 /**
@@ -456,6 +281,71 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
     [self.lock unlock];
     
     return [NSArray arrayWithArray:annotationsToBeShown];
+}
+
+/**
+ * Sort annotations based on radius and importance of marker.
+ */
+- (NSArray *)sortMarkersBasedOnRadius:(NSArray *)aheadMarkers {
+    NSArray *sortedAheadMarkers;
+    sortedAheadMarkers = [aheadMarkers sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        AIRMapAheadMarker *markerA = a;
+        AIRMapAheadMarker *markerB = b;
+        NSInteger largerThanMaxRadius = 1000;
+        NSInteger penaltyA = (markerA.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
+        NSInteger penaltyB = (markerB.importantStatus.isImportant == YES) ? 0 : largerThanMaxRadius;
+        CGFloat importanceA = [markerA radius] - penaltyA;
+        CGFloat importanceB = [markerB radius] - penaltyB;
+        if (importanceA > importanceB) return (NSComparisonResult)NSOrderedAscending;
+        else if (importanceB > importanceA) return (NSComparisonResult)NSOrderedDescending;
+        /**
+         * We want to avoid NSOrderedSame to be returned because it can cause re-clustering to
+         * give different results with the same initial list of annotations which cause clusters
+         * to change places with only a slight move of the map.
+         */
+        else {
+            BOOL greaterLatitude = markerA.coordinate.latitude > markerB.coordinate.latitude;
+            BOOL greaterLongitude = markerA.coordinate.longitude > markerB.coordinate.longitude;
+            if (greaterLatitude == YES || greaterLongitude == YES) {
+                return (NSComparisonResult)NSOrderedAscending;
+            } else {
+                return (NSComparisonResult)NSOrderedSame;
+            }
+        }
+    }];
+    return sortedAheadMarkers;
+}
+
+/**
+ * Since we don't remove and re-add AIRMapAheadMarker's when they change the amount of markers the
+ * MapView won't call getAnnotationView() on the markers so we need to update the MKAnnotationView 
+ * of the markers that have changed.
+ */
+- (void)updateCoverAmountIndicatorForAnnotations:(NSArray *)annotations
+{
+    NSInteger clusterIndicatorTag = 1234;
+    for (AIRMapAheadMarker *aheadMarker in annotations) {
+        if ([aheadMarker isKindOfClass:[AIRMapAheadMarker class]] == NO) continue;
+        MKAnnotationView *anView = [aheadMarker getAnnotationView];
+        // Remove any existing cluster indicators.
+        for (UIView *subview in [anView subviews]) {
+            if ([subview tag] == clusterIndicatorTag) {
+                [subview removeFromSuperview];
+            }
+        }
+        // Add cluster indicator if marker is a cluster.
+        if (aheadMarker.coveringMarkers.count > 0) {
+            UIColor *color = [[aheadMarker borderColor] representedColor];
+            NSInteger amountInCluster = aheadMarker.coveringMarkers.count+1;
+            UILabel *labelView = [AIRMapAheadMarkerUtilities createClusterIndicatorWithColor:color
+                                                                         withAmountInCluster:amountInCluster
+                                                                           usingMarkerRadius:[aheadMarker radius]
+                                                                     withClusterIndicatorTag:clusterIndicatorTag
+                                  ];
+            
+            [anView addSubview:labelView];
+        }
+    }
 }
 
 - (NSArray *)allAnnotations
