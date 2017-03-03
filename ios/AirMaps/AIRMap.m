@@ -231,8 +231,8 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapAheadMarker *marker = [[AIRMapAheadMarkerUtilities sharedInstance] prevPressedMarker];
     if (marker != nil) {
-        [self triggerMarkerPressWithMarker:marker];
         [[AIRMapAheadMarkerUtilities sharedInstance] setPrevPressedMarker:nil];
+        [self triggerMarkerPressWithMarker:marker];
         
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
@@ -241,6 +241,11 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 }
 
 - (void) triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
+    [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
+    ImportantStatus newImportantStatus = [marker importantStatus];
+    newImportantStatus.isImportant = NO;
+    [marker setImportantStatus:newImportantStatus];
+    
     id markerPressEvent = @{
                             @"action": @"marker-press",
                             @"id": marker.identifier ?: @"unknown",
@@ -251,10 +256,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                             };
 
     if (marker.onPress) marker.onPress(markerPressEvent);
-    [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
-    ImportantStatus newImportantStatus = [marker importantStatus];
-    newImportantStatus.isImportant = NO;
-    [marker setImportantStatus:newImportantStatus];
 }
 
 // Allow touches to be sent to our calloutview.
