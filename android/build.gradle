@@ -42,6 +42,8 @@ android {
   compileSdkVersion 23
   buildToolsVersion "23.0.3"
 
+  resourcePrefix 'amu_'
+
   defaultConfig {
     minSdkVersion 16
     targetSdkVersion 23
