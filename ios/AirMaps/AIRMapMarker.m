@@ -10,13 +10,14 @@
 #import "AIRMapMarker.h"
 #import "AIRMapUtilities.h"
 
-#import "RCTEventDispatcher.h"
-#import "UIView+React.h"
-#import "RCTBridge.h"
-#import "RCTUtils.h"
-#import "RCTImageLoader.h"
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
+#import <React/RCTImageLoader.h>
+#import <React/RCTUtils.h>
+#import <React/UIView+React.h>
+#import "NSString+Color.h"
 
-
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0];
 
 @implementation AIREmptyCalloutBackgroundView
 @end
@@ -71,6 +72,11 @@
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     if (CGRectContainsPoint(self.bounds, point)) {
         AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
+    
+        if ([utilities prevPressedMarker] != nil) {
+            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
+        }
+        
         [utilities setPrevPressedMarker:self];
     }
     return [super hitTest:point withEvent:event];
@@ -122,17 +128,12 @@
 
         annotationView.enabled = false;
         
-        if ([_dotColor isEqualToString:@"blue"]) {
-            UIColor *color = [UIColor colorWithRed:0.01 green:0.61 blue:0.90 alpha:1.0];
-            annotationView.image = [self createCircle:color];
-        } else if ([_dotColor isEqualToString:@"red"]) {
-            UIColor *color = [UIColor colorWithRed:0.59 green:0.12 blue:0.14 alpha:1.0];
-            annotationView.image = [self createCircle:color];
-        } else {
-            UIColor *color = [UIColor colorWithRed:1.00 green:1.00 blue:1.00 alpha:1.0];
-            annotationView.image = [self createCircle:color];
-        }
-
+        /* Use NSString-Color library to intelligently convert string colors to hex.
+         * See https://github.com/nicolasgoutaland/NSString-Color
+         */
+        UIColor *color = [_dotColor representedColor];
+        annotationView.image = [self createCircle:color];
+        
         return annotationView;
     } else {
         // If it has subviews, it means we are wanting to render a custom marker with arbitrary react views.

@@ -12,7 +12,6 @@
 #import "RCTImageView.h"
 #import "RCTEventDispatcher.h"
 #import "AIRMapMarker.h"
-#import "UIView+React.h"
 #import "AIRMapPolyline.h"
 #import "AIRMapPolygon.h"
 #import "AIRMapCircle.h"
@@ -118,16 +117,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        UIView *view = subview;
-        [UIView animateWithDuration:0.25 animations:^{
-            view.alpha = 0.0;
-            AIRMapMarker *marker = (AIRMapMarker *)view;
-            if(marker && marker.selected) {
-                view.transform = CGAffineTransformMakeScale(2, 2);
-            }
-        } completion:^(BOOL finished) {
-            [self removeAnnotation:(id<MKAnnotation>)view];
-        }];
+        [self removeAnnotation:(id<MKAnnotation>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
     } else if ([subview isKindOfClass:[AIRMapPolygon class]]) {
@@ -159,32 +149,52 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+/**
+ * If we have an active marker pressed and we begin a touch on the map:
+ * 1. Set that marker to a lower opacity.
+ * 2. Record at what point on the screen we started the press,
+ *    this is useful for touchesMoved.
+ */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 0.7;
-    
-    // Hack to fix bug with marker being left selected even though we no longer press the map.
-    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 1.0);
-    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
-        // do work in the UI thread here
-        if ([utilities prevPressedMarker] != nil) {
-            [[utilities prevPressedMarker] setAlpha:1.0];
-            [utilities setPrevPressedMarker:nil];
-        }
-    });
+    if ([utilities prevPressedMarker] != nil) {
+        utilities.prevPressedMarker.alpha = 0.5;
+
+        UITouch *touch = [[event allTouches] anyObject];
+        [utilities setTouchStartPos:[touch locationInView:touch.view]];
+        CGPoint point = [touch locationInView:touch.view];
+    }
 }
 
+/**
+ * If we move too far while having an active marker pressed,
+ * revert marker settings and set to no active marker pressed.
+ */
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    utilities.prevPressedMarker.alpha = 1.0;
-    [utilities setPrevPressedMarker:nil];
+
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint touchLocation = [touch locationInView:self];
+    CGPoint startTouch = [utilities touchStartPos];
+    double diffX = fabs(startTouch.x - touchLocation.x);
+    double diffY = fabs(startTouch.y - touchLocation.y);
+
+    double threshold = 30;
+    if (diffX > threshold || diffY > threshold) {
+        utilities.prevPressedMarker.alpha = 1.0;
+        [utilities setPrevPressedMarker:nil];
+    }
 }
 
+/**
+ * When we stop touching map, and we have an active marker pressed,
+ * send markerPress to JS land and set to no active marker pressed.
+ */
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
     AIRMapMarker *marker = [utilities prevPressedMarker];
-    
-    if (marker != nil) {
+
+    if ([utilities prevPressedMarker] != nil) {
         id markerPressEvent = @{
                                 @"action": @"marker-press",
                                 @"id": marker.identifier ?: @"unknown",
@@ -193,8 +203,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                         @"longitude": @(marker.coordinate.longitude)
                                         }
                                 };
-        
+
         if (marker.onPress) marker.onPress(markerPressEvent);
+        marker.alpha = 0.5;
         [utilities setPrevPressedMarker:nil];
     }
 }
@@ -204,10 +215,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     UIView *calloutMaybe = [self.calloutView hitTest:[self.calloutView convertPoint:point fromView:self] withEvent:event];
     if (calloutMaybe) return calloutMaybe;
-    
+
     // We need to trigger hitTest on AIRMapMarker so we can highlight and select it on click
     RCTView *view = (UIView *)[super hitTest:point withEvent:event];
-    
+
     // If it's not a callout, then always return the MKNewAnnotationContainerView which will handle pinch & zoom properly
     // - MKMapView
     // - - UIView
@@ -444,7 +455,33 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 
         [self updateScrollEnabled];
         [self updateZoomEnabled];
+        [self updateLegalLabelInsets];
     }
+}
+
+- (void)updateLegalLabelInsets {
+    if (_legalLabel) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CGRect frame = _legalLabel.frame;
+            if (_legalLabelInsets.left) {
+                frame.origin.x = _legalLabelInsets.left;
+            } else if (_legalLabelInsets.right) {
+                frame.origin.x = self.frame.size.width - _legalLabelInsets.right - frame.size.width;
+            }
+            if (_legalLabelInsets.top) {
+                frame.origin.y = _legalLabelInsets.top;
+            } else if (_legalLabelInsets.bottom) {
+                frame.origin.y = self.frame.size.height - _legalLabelInsets.bottom - frame.size.height;
+            }
+            _legalLabel.frame = frame;
+        });
+    }
+}
+
+
+- (void)setLegalLabelInsets:(UIEdgeInsets)legalLabelInsets {
+  _legalLabelInsets = legalLabelInsets;
+  [self updateLegalLabelInsets];
 }
 
 - (void)beginLoading {
