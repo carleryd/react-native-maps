@@ -361,24 +361,24 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
 
 - (void)displayAnnotations:(NSArray *)annotations onMapView:(MKMapView *)mapView
 {
-    NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
-
-    MKUserLocation *userLocation = [mapView userLocation];
-    if (userLocation) {
-        [before removeObject:userLocation];
-    }
-    NSSet *after = [NSSet setWithArray:annotations];
-    
-    NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
-    [toKeep intersectSet:after];
-    
-    NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
-    [toAdd minusSet:toKeep];
-    
-    NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
-    [toRemove minusSet:after];
-    
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        NSMutableSet *before = [NSMutableSet setWithArray:mapView.annotations];
+
+        MKUserLocation *userLocation = [mapView userLocation];
+        if (userLocation) {
+            [before removeObject:userLocation];
+        }
+        NSSet *after = [NSSet setWithArray:annotations];
+        
+        NSMutableSet *toKeep = [NSMutableSet setWithSet:before];
+        [toKeep intersectSet:after];
+        
+        NSMutableSet *toAdd = [NSMutableSet setWithSet:after];
+        [toAdd minusSet:toKeep];
+        
+        NSMutableSet *toRemove = [NSMutableSet setWithSet:before];
+        [toRemove minusSet:after];
+    
         [mapView addAnnotations:[toAdd allObjects]];
         [mapView removeAnnotations:[toRemove allObjects]];
         [self updateCoverAmountIndicatorForAnnotations:annotations];

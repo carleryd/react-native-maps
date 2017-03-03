@@ -696,26 +696,26 @@ static int kDragCenterContext;
      * If we use clustering, trigger cluster for new region.
      */
     if (mapView.clusterMarkers) {
-//        void (^triggerClustering)();
-//        triggerClustering = ^void {
+        void (^triggerClustering)();
+        triggerClustering = ^void {
             double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
             NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect
                                                                                   withZoomScale:scale
                                     ];
         
             [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-//        };
+        };
 
-//        NSOperationQueue *q = [mapView nsOperationQueue];
+        NSOperationQueue *q = [mapView nsOperationQueue];
         /**
          * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
          * If this happens just cancel those operations and start a new one.
          */
-//        if ([q operationCount] > 0) {
-//            [q cancelAllOperations];
-//        }
-//        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
-//        [q addOperation:operation];
+        if ([q operationCount] > 0) {
+            [q cancelAllOperations];
+        }
+        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
+        [q addOperation:operation];
     }
 }
 
