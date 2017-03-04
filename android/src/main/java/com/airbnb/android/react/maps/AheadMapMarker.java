@@ -1,8 +1,17 @@
 package com.airbnb.android.react.maps;
 
 import android.content.Context;
+import android.net.Uri;
 
+import com.facebook.common.references.CloseableReference;
+import com.facebook.datasource.DataSource;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.DraweeHolder;
+import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.image.CloseableImage;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.views.view.ReactViewGroup;
@@ -17,10 +26,13 @@ import com.google.maps.android.clustering.ClusterManager;
  */
 public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     public final int profilePhoto = R.drawable.walter; /* TODO REMOVE */
+
     public final String name = "Nils";
     private final Context context;
     private LatLng position;
     private String title;
+    private Float weightedValue;
+    private DataSource<CloseableReference<CloseableImage>> dataSource;
 
     public AheadMapMarker(Context context) {
         super(context);
@@ -54,6 +66,34 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
         position = new LatLng(coordinate.getDouble("latitude"), coordinate.getDouble("longitude"));
     }
 
+    public void setImage(String uri) {
+        if (uri == null) {
+//            iconBitmapDescriptor = null;
+//            update();
+        } else if (uri.startsWith("http://") || uri.startsWith("https://") ||
+                uri.startsWith("file://")) {
+            ImageRequest imageRequest = ImageRequestBuilder
+                    .newBuilderWithSource(Uri.parse(uri))
+                    .build();
+
+            ImagePipeline imagePipeline = Fresco.getImagePipeline();
+            dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
+//            DraweeController controller = Fresco.newDraweeControllerBuilder()
+//                    .setImageRequest(imageRequest)
+//                    .setControllerListener(mLogoControllerListener)
+//                    .setOldController(logoHolder.getController())
+//                    .build();
+//            logoHolder.setController(controller);
+        } else {
+//            iconBitmapDescriptor = getBitmapDescriptorByName(uri);
+//            update();
+        }
+    }
+
+    public void setWeightedValue(float value) {
+        weightedValue = value;
+    }
+
     @Override
     public LatLng getPosition() {
         return position;
@@ -68,5 +108,6 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     public String getSnippet() {
         return null;
     }
+
 
 }

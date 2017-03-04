@@ -34,6 +34,8 @@ const propTypes = {
         latitude: PropTypes.number.isRequired,
         longitude: PropTypes.number.isRequired,
     }).isRequired,
+
+    weightedValue: PropTypes.number.isRequired,
 };
 
 class AheadMarker extends React.Component {

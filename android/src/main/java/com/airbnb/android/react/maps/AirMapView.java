@@ -188,6 +188,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             // Draw a single person.
             // Set the info window to show their name.
             mImageView.setImageResource(person.profilePhoto);
+//            mImageView.setLayoutParams(new ViewGroup.LayoutParams((int) 100, (int) 100));
             Bitmap icon = mIconGenerator.makeIcon();
             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(person.name);
         }
