@@ -184,13 +184,20 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
 
         @Override
-        protected void onBeforeClusterItemRendered(AheadMapMarker person, MarkerOptions markerOptions) {
+        protected void onBeforeClusterItemRendered(AheadMapMarker post, MarkerOptions markerOptions) {
             // Draw a single person.
             // Set the info window to show their name.
-            mImageView.setImageResource(person.profilePhoto);
+            mImageView.setImageResource(post.profilePhoto);
 //            mImageView.setLayoutParams(new ViewGroup.LayoutParams((int) 100, (int) 100));
+            /* TODO Quick test*/
+            LayoutParams params = (LayoutParams) mImageView.getLayoutParams();
+            params.height = (int) post.getWeightedValue() * 20;
+            params.width = (int) post.getWeightedValue() * 20;
+            mImageView.setLayoutParams(params);
+            /***********/
+
             Bitmap icon = mIconGenerator.makeIcon();
-            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(person.name);
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(post.name);
         }
 
         @Override
@@ -203,7 +210,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
             for (AheadMapMarker p : cluster.getItems()) {
                 // Draw 4 at most.
-                if (profilePhotos.size() == 4) break;
+                if (profilePhotos.size() == 1) break;
                 Drawable drawable = getResources().getDrawable(p.profilePhoto);
                 drawable.setBounds(0, 0, width, height);
                 profilePhotos.add(drawable);
