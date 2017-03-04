@@ -33,6 +33,7 @@ public class MapsPackage implements ReactPackage {
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         AirMapCalloutManager calloutManager = new AirMapCalloutManager();
         AirMapMarkerManager annotationManager = new AirMapMarkerManager();
+        AirMapAheadMarkerManager aheadMarkerManager = new AirMapAheadMarkerManager();
         AirMapPolylineManager polylineManager = new AirMapPolylineManager(reactContext);
         AirMapPolygonManager polygonManager = new AirMapPolygonManager(reactContext);
         AirMapCircleManager circleManager = new AirMapCircleManager(reactContext);
@@ -43,6 +44,7 @@ public class MapsPackage implements ReactPackage {
         return Arrays.<ViewManager>asList(
                 calloutManager,
                 annotationManager,
+                aheadMarkerManager,
                 polylineManager,
                 polygonManager,
                 circleManager,

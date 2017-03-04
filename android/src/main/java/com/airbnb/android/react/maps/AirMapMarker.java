@@ -69,8 +69,6 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
     private boolean calloutAnchorIsSet;
 
     private boolean hasCustomMarkerView = false;
-    public final int profilePhoto = R.drawable.walter; /* TODO REMOVE */
-    public final String name = "Nils";
 
 
     private final DraweeHolder<?> logoHolder;

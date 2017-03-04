@@ -62,10 +62,10 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnMarkerDragListener, OnMapReadyCallback,
-        ClusterManager.OnClusterClickListener<AirMapMarker>,
-        ClusterManager.OnClusterInfoWindowClickListener<AirMapMarker>,
-        ClusterManager.OnClusterItemClickListener<AirMapMarker>,
-        ClusterManager.OnClusterItemInfoWindowClickListener<AirMapMarker>
+        ClusterManager.OnClusterClickListener<AheadMapMarker>,
+        ClusterManager.OnClusterInfoWindowClickListener<AheadMapMarker>,
+        ClusterManager.OnClusterItemClickListener<AheadMapMarker>,
+        ClusterManager.OnClusterItemInfoWindowClickListener<AheadMapMarker>
 {
     public GoogleMap map;
     private ProgressBar mapLoadingProgressBar;
@@ -85,7 +85,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     private boolean cacheEnabled = false;
     private boolean clusterMarkers = false;
 
-    private ClusterManager<AirMapMarker> mClusterManager;
+    private ClusterManager<AheadMapMarker> mClusterManager;
 
     private static final String[] PERMISSIONS = new String[] {
             "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"};
@@ -157,7 +157,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
      * Draws profile photos inside markers (using IconGenerator).
      * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
      */
-    private class PersonRenderer extends DefaultClusterRenderer<AirMapMarker> {
+    private class PersonRenderer extends DefaultClusterRenderer<AheadMapMarker> {
         private final IconGenerator mIconGenerator;
         private final IconGenerator mClusterIconGenerator;
         private final ImageView mImageView;
@@ -184,7 +184,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
 
         @Override
-        protected void onBeforeClusterItemRendered(AirMapMarker person, MarkerOptions markerOptions) {
+        protected void onBeforeClusterItemRendered(AheadMapMarker person, MarkerOptions markerOptions) {
             // Draw a single person.
             // Set the info window to show their name.
             mImageView.setImageResource(person.profilePhoto);
@@ -193,14 +193,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
 
         @Override
-        protected void onBeforeClusterRendered(Cluster<AirMapMarker> cluster, MarkerOptions markerOptions) {
+        protected void onBeforeClusterRendered(Cluster<AheadMapMarker> cluster, MarkerOptions markerOptions) {
             // Draw multiple people.
             // Note: this method runs on the UI thread. Don't spend too much time in here (like in this example).
             List<Drawable> profilePhotos = new ArrayList<Drawable>(Math.min(4, cluster.getSize()));
             int width = mDimension;
             int height = mDimension;
 
-            for (AirMapMarker p : cluster.getItems()) {
+            for (AheadMapMarker p : cluster.getItems()) {
                 // Draw 4 at most.
                 if (profilePhotos.size() == 4) break;
                 Drawable drawable = getResources().getDrawable(p.profilePhoto);
@@ -223,7 +223,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     }
 
     @Override
-    public boolean onClusterClick(Cluster<AirMapMarker> cluster) {
+    public boolean onClusterClick(Cluster<AheadMapMarker> cluster) {
         // Show a toast with some info when the cluster is clicked.
         String firstName = cluster.getItems().iterator().next().name;
 //        Toast.makeText(this, cluster.getSize() + " (including " + firstName + ")", Toast.LENGTH_SHORT).show();
@@ -250,18 +250,18 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     }
 
     @Override
-    public void onClusterInfoWindowClick(Cluster<AirMapMarker> cluster) {
+    public void onClusterInfoWindowClick(Cluster<AheadMapMarker> cluster) {
         // Does nothing, but you could go to a list of the users.
     }
 
     @Override
-    public boolean onClusterItemClick(AirMapMarker item) {
+    public boolean onClusterItemClick(AheadMapMarker item) {
         // Does nothing, but you could go into the user's profile page, for example.
         return false;
     }
 
     @Override
-    public void onClusterItemInfoWindowClick(AirMapMarker item) {
+    public void onClusterItemInfoWindowClick(AheadMapMarker item) {
         // Does nothing, but you could go into the user's profile page, for example.
     }
 
@@ -270,7 +270,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         this.map = map;
         this.map.setInfoWindowAdapter(this);
         this.map.setOnMarkerDragListener(this);
-        this.mClusterManager = new ClusterManager<AirMapMarker>(this.getContext(), map);
+        this.mClusterManager = new ClusterManager<AheadMapMarker>(this.getContext(), map);
         mClusterManager.setRenderer(new PersonRenderer(this.context));
 
         manager.pushEvent(this, "onMapReady", new WritableNativeMap());
@@ -531,10 +531,16 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     public void addFeature(View child, int index) {
         // Our desired API is to pass up annotations/overlays as children to the mapview component.
         // This is where we intercept them and do the appropriate underlying mapview action.
-        if (child instanceof AirMapMarker) {
+        if (child instanceof AheadMapMarker) {
+            /*
+                What does all the other stuff do  ?
+            */
+            AheadMapMarker annotation = (AheadMapMarker) child;
+            annotation.addToCluster(mClusterManager);
+        }
+        else if(child instanceof AirMapMarker) {
             AirMapMarker annotation = (AirMapMarker) child;
-            mClusterManager.addItem(annotation);
-//            annotation.addToMap(map);
+            annotation.addToMap(map);
             features.add(index, annotation);
             Marker marker = (Marker) annotation.getFeature();
             markerMap.put(marker, annotation);
@@ -573,12 +579,15 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     public void removeFeatureAt(int index) {
         AirMapFeature feature = features.remove(index);
-        if (feature instanceof AirMapMarker) {
-            markerMap.remove(feature.getFeature());
-            mClusterManager.removeItem((AirMapMarker)feature);
-        }else{
+//        if (feature instanceof AheadMapMarker){
+//            mClusterManager.removeItem((AheadMapMarker)feature);
+//        } else{
+            if (feature instanceof AirMapMarker) {
+                markerMap.remove(feature.getFeature());
+            }
             feature.removeFromMap(map);
-        }
+//        }
+
     }
 
     public WritableMap makeClickEventData(LatLng point) {
