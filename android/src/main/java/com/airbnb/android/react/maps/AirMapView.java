@@ -536,6 +536,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
                 What does all the other stuff do  ?
             */
             AheadMapMarker annotation = (AheadMapMarker) child;
+            features.add(index, annotation);
             annotation.addToCluster(mClusterManager);
         }
         else if(child instanceof AirMapMarker) {
@@ -579,14 +580,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     public void removeFeatureAt(int index) {
         AirMapFeature feature = features.remove(index);
-//        if (feature instanceof AheadMapMarker){
-//            mClusterManager.removeItem((AheadMapMarker)feature);
-//        } else{
+        if (feature instanceof AheadMapMarker){
+            mClusterManager.removeItem((AheadMapMarker)feature);
+        } else{
             if (feature instanceof AirMapMarker) {
                 markerMap.remove(feature.getFeature());
             }
             feature.removeFromMap(map);
-//        }
+        }
 
     }
 

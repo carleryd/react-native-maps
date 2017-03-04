@@ -15,7 +15,7 @@ import com.google.maps.android.clustering.ClusterManager;
 /**
  * Created by nils on 2017-03-03.
  */
-public class AheadMapMarker extends ReactViewGroup implements ClusterItem {
+public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     public final int profilePhoto = R.drawable.walter; /* TODO REMOVE */
     public final String name = "Nils";
     private final Context context;
@@ -25,6 +25,21 @@ public class AheadMapMarker extends ReactViewGroup implements ClusterItem {
     public AheadMapMarker(Context context) {
         super(context);
         this.context = context;
+    }
+
+    @Override
+    public void addToMap(GoogleMap map) {
+
+    }
+
+    @Override
+    public void removeFromMap(GoogleMap map) {
+
+    }
+
+    @Override
+    public Object getFeature() {
+        return null;
     }
 
     public void addToCluster(ClusterManager mClusterManager) {
