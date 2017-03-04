@@ -57,6 +57,8 @@
                            usingMarkerRadius:(CGFloat)radius
                      withClusterIndicatorTag:(NSInteger)tag
 {
+    NSString *amountString = [NSString stringWithFormat:@"%lu", (unsigned long)amount];
+    NSString *limitedAmountString = (amount > 99) ? @"99+" : amountString;
     CGRect labelRect = CGRectMake(radius * 0.20, -radius * 1.20, radius, radius);
     UILabel *labelView = [[UILabel alloc] initWithFrame:labelRect];
     labelView.tag = tag;
@@ -64,7 +66,8 @@
 
     labelView.layer.cornerRadius = labelView.frame.size.width / 2;
     labelView.clipsToBounds = YES;
-    [labelView setText:[NSString stringWithFormat:@"%lu", (unsigned long)amount]];
+    [labelView setText:limitedAmountString];
+    [labelView setAdjustsFontSizeToFitWidth:YES];
     [labelView setTextColor:[@"white" representedColor]];
     [labelView setTextAlignment:NSTextAlignmentCenter];
     return labelView;
