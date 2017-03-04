@@ -35,7 +35,7 @@ import com.google.maps.android.clustering.ClusterItem;
 
 import javax.annotation.Nullable;
 
-public class AirMapMarker extends AirMapFeature implements ClusterItem {
+public class AirMapMarker extends AirMapFeature {
 
     private MarkerOptions markerOptions;
     private Marker marker;
@@ -419,18 +419,18 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         return BitmapDescriptorFactory.fromResource(getDrawableResourceByName(name));
     }
 
-    @Override
-    public LatLng getPosition() {
-        return position;
-    }
-
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
-    public String getSnippet() {
-        return null;
-    }
+//    @Override
+//    public LatLng getPosition() {
+//        return position;
+//    }
+//
+//    @Override
+//    public String getTitle() {
+//        return title;
+//    }
+//
+//    @Override
+//    public String getSnippet() {
+//        return null;
+//    }
 }

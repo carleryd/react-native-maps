@@ -232,29 +232,8 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public boolean onClusterClick(Cluster<AheadMapMarker> cluster) {
-        // Show a toast with some info when the cluster is clicked.
-        String firstName = cluster.getItems().iterator().next().name;
-//        Toast.makeText(this, cluster.getSize() + " (including " + firstName + ")", Toast.LENGTH_SHORT).show();
 
-        // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
-        // inside of bounds, then animate to center of the bounds.
-
-        // Create the builder to collect all essential cluster items for the bounds.
-        LatLngBounds.Builder builder = LatLngBounds.builder();
-        for (ClusterItem item : cluster.getItems()) {
-            builder.include(item.getPosition());
-        }
-        // Get the LatLngBounds
-        final LatLngBounds bounds = builder.build();
-
-        // Animate camera to the bounds
-        try {
-            this.map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return true;
+        return false;
     }
 
     @Override
@@ -264,8 +243,23 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public boolean onClusterItemClick(AheadMapMarker item) {
+        WritableMap event;
+        event = makeClickEventData(item.getPosition());
+        event.putString("action", "cluster-item-press");
+        manager.pushEvent(this, "onPress", event);
+
+//        WritableMap event;
+//
+//        event = makeClickEventData(item.getPosition());
+//        event.putString("action", "marker-press");
+//        manager.pushEvent(this, "onMarkerPress", event);
+//
+//        event = makeClickEventData(marker.getPosition());
+//        event.putString("action", "marker-press");
+//        manager.pushEvent(markerMap.get(marker), "onPress", event);
+
         // Does nothing, but you could go into the user's profile page, for example.
-        return false;
+        return true;
     }
 
     @Override
@@ -286,30 +280,34 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         final AirMapView view = this;
         map.setOnCameraIdleListener(mClusterManager);
         map.setOnMarkerClickListener(mClusterManager);
-
-        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                WritableMap event;
-
-                event = makeClickEventData(marker.getPosition());
-                event.putString("action", "marker-press");
-                manager.pushEvent(view, "onMarkerPress", event);
-
-                event = makeClickEventData(marker.getPosition());
-                event.putString("action", "marker-press");
-                manager.pushEvent(markerMap.get(marker), "onPress", event);
-
-                // Return false to open the callout info window and center on the marker
-                // https://developers.google.com/android/reference/com/google/android/gms/maps/GoogleMap.OnMarkerClickListener
-                if (view.moveOnMarkerPress) {
-                  return false;
-                } else {
-                  marker.showInfoWindow();
-                  return true;
-                }
-            }
-        });
+        map.setOnInfoWindowClickListener(mClusterManager);
+        mClusterManager.setOnClusterClickListener(this);
+        mClusterManager.setOnClusterInfoWindowClickListener(this);
+        mClusterManager.setOnClusterItemClickListener(this);
+        mClusterManager.setOnClusterItemInfoWindowClickListener(this);
+//        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//            @Override
+//            public boolean onMarkerClick(Marker marker) {
+//                WritableMap event;
+//
+//                event = makeClickEventData(marker.getPosition());
+//                event.putString("action", "marker-press");
+//                manager.pushEvent(view, "onMarkerPress", event);
+//
+////                event = makeClickEventData(marker.getPosition());
+////                event.putString("action", "marker-press");
+////                manager.pushEvent(markerMap.get(marker), "onPress", event);
+//
+//                // Return false to open the callout info window and center on the marker
+//                // https://developers.google.com/android/reference/com/google/android/gms/maps/GoogleMap.OnMarkerClickListener
+//                if (view.moveOnMarkerPress) {
+//                  return false;
+//                } else {
+//                  marker.showInfoWindow();
+//                  return true;
+//                }
+//            }
+//        });
 
         map.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
@@ -329,26 +327,26 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             }
         });
 
-        map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-            @Override
-            public void onInfoWindowClick(Marker marker) {
-                WritableMap event;
-
-                event = makeClickEventData(marker.getPosition());
-                event.putString("action", "callout-press");
-                manager.pushEvent(view, "onCalloutPress", event);
-
-                event = makeClickEventData(marker.getPosition());
-                event.putString("action", "callout-press");
-                AirMapMarker markerView = markerMap.get(marker);
-                manager.pushEvent(markerView, "onCalloutPress", event);
-
-                event = makeClickEventData(marker.getPosition());
-                event.putString("action", "callout-press");
-                AirMapCallout infoWindow = markerView.getCalloutView();
-                if (infoWindow != null) manager.pushEvent(infoWindow, "onPress", event);
-            }
-        });
+//        map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+//            @Override
+//            public void onInfoWindowClick(Marker marker) {
+//                WritableMap event;
+//
+//                event = makeClickEventData(marker.getPosition());
+//                event.putString("action", "callout-press");
+//                manager.pushEvent(view, "onCalloutPress", event);
+//
+//                event = makeClickEventData(marker.getPosition());
+//                event.putString("action", "callout-press");
+//                AirMapMarker markerView = markerMap.get(marker);
+//                manager.pushEvent(markerView, "onCalloutPress", event);
+//
+//                event = makeClickEventData(marker.getPosition());
+//                event.putString("action", "callout-press");
+//                AirMapCallout infoWindow = markerView.getCalloutView();
+//                if (infoWindow != null) manager.pushEvent(infoWindow, "onPress", event);
+//            }
+//        });
 
         map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -545,6 +543,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             */
             AheadMapMarker annotation = (AheadMapMarker) child;
             features.add(index, annotation);
+//            clusterItemMap.put(annotation)
             annotation.addToCluster(mClusterManager);
         }
         else if(child instanceof AirMapMarker) {
