@@ -109,9 +109,11 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         // Only add the annotation to the clusteringManager, it will then add it to the MapView.
-        [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
         if (self.clusterMarkers) {
+            [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
+        } else {
+            [self addAnnotation:(id<MKAnnotation>)subview];
         }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         ((AIRMapPolyline *)subview).map = self;
@@ -143,9 +145,11 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         [self removeAnnotation:(id<MKAnnotation>) subview];
         [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
-        [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
         if (self.clusterMarkers) {
+            [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
+        } else {
+            [self removeAnnotation:(id<MKAnnotation>) subview];
         }
     } else if ([subview isKindOfClass:[AIRMapPolyline class]]) {
         [self removeOverlay:(id <MKOverlay>) subview];
