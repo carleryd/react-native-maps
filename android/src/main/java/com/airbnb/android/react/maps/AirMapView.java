@@ -243,19 +243,21 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public boolean onClusterItemClick(AheadMapMarker item) {
-        System.out.println("CLICK!!!!");
         WritableMap event;
         event = makeClickEventData(item.getPosition());
         event.putString("action", "marker-press");
         event.putString("id", item.getIdentifier());
         manager.pushEvent(this, "onMarkerPress", event);
 
-//        WritableMap event;
-//
+
 //        event = makeClickEventData(item.getPosition());
 //        event.putString("action", "marker-press");
-//        manager.pushEvent(this, "onMarkerPress", event);
-//
+//        event.putString("id", item.getIdentifier());
+//        manager.pushEvent(this, "onPress", event);
+
+
+//        manager.pushEvent(item, "onPress", event);
+
 //        event = makeClickEventData(marker.getPosition());
 //        event.putString("action", "marker-press");
 //        manager.pushEvent(markerMap.get(marker), "onPress", event);
@@ -742,14 +744,16 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public View getInfoWindow(Marker marker) {
-        AirMapMarker markerView = markerMap.get(marker);
-        return markerView.getCallout();
+//        AirMapMarker markerView = markerMap.get(marker);
+//        return markerView.getCallout();
+        return null;
     }
 
     @Override
     public View getInfoContents(Marker marker) {
-        AirMapMarker markerView = markerMap.get(marker);
-        return markerView.getInfoContents();
+//        AirMapMarker markerView = markerMap.get(marker);
+//        return markerView.getInfoContents();
+        return null;
     }
 
     @Override
