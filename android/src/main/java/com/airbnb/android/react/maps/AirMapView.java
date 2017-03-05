@@ -243,10 +243,12 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public boolean onClusterItemClick(AheadMapMarker item) {
+        System.out.println("CLICK!!!!");
         WritableMap event;
         event = makeClickEventData(item.getPosition());
-        event.putString("action", "cluster-item-press");
-        manager.pushEvent(this, "onPress", event);
+        event.putString("action", "marker-press");
+        event.putString("id", item.getIdentifier());
+        manager.pushEvent(this, "onMarkerPress", event);
 
 //        WritableMap event;
 //

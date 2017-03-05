@@ -31,6 +31,7 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     private final Context context;
     private LatLng position;
     private String title;
+    private String identifier;
     private float weightedValue;
     private DataSource<CloseableReference<CloseableImage>> dataSource;
 
@@ -94,6 +95,8 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
         weightedValue = value;
     }
 
+
+
     public float getWeightedValue(){
         return weightedValue;
     }
@@ -114,4 +117,11 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     }
 
 
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getIdentifier() {
+        return this.identifier;
+    }
 }

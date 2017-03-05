@@ -36,6 +36,11 @@ const propTypes = {
     }).isRequired,
 
     weightedValue: PropTypes.number.isRequired,
+    identifier: PropTypes.string.isRequired,
+    /**
+     * Callback that is called when the user presses on the marker
+     */
+    onPress: PropTypes.func,
 };
 
 class AheadMarker extends React.Component {
