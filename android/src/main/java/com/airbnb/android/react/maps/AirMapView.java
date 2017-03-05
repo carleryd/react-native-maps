@@ -232,7 +232,12 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public boolean onClusterClick(Cluster<AheadMapMarker> cluster) {
-
+        AheadMapMarker item = cluster.getItems().iterator().next();
+        WritableMap event;
+        event = makeClickEventData(item.getPosition());
+        event.putString("action", "marker-press");
+        event.putString("id", item.getIdentifier());
+        manager.pushEvent(this, "onMarkerPress", event);
         return false;
     }
 
@@ -289,6 +294,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         mClusterManager.setOnClusterInfoWindowClickListener(this);
         mClusterManager.setOnClusterItemClickListener(this);
         mClusterManager.setOnClusterItemInfoWindowClickListener(this);
+        mClusterManager.cluster();
 //        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 //            @Override
 //            public boolean onMarkerClick(Marker marker) {
@@ -744,6 +750,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     @Override
     public View getInfoWindow(Marker marker) {
+        System.out.println(marker);
 //        AirMapMarker markerView = markerMap.get(marker);
 //        return markerView.getCallout();
         return null;
