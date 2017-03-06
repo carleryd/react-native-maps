@@ -1,6 +1,7 @@
 package com.airbnb.android.react.maps;
 
 import android.app.Activity;
+import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.Base64;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import java.io.Closeable;
 
 import javax.annotation.Nullable;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReadableMap;
@@ -53,6 +55,13 @@ public class AirMapModule extends ReactContextBaseJavaModule {
             closeable.close();
         } catch (IOException ignored) {
         }
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        Context context = getReactApplicationContext().getApplicationContext();
+        Fresco.initialize(context);
     }
 
     @ReactMethod

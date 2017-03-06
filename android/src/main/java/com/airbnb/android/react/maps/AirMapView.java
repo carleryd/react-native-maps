@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v4.view.GestureDetectorCompat;
@@ -23,6 +24,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.facebook.drawee.view.DraweeView;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -158,29 +161,37 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
      * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
      */
     private class PersonRenderer extends DefaultClusterRenderer<AheadMapMarker> {
-        private final IconGenerator mIconGenerator;
+//        private final IconGenerator mIconGenerator;
         private final IconGenerator mClusterIconGenerator;
         private final ImageView mImageView;
-        private final ImageView mClusterImageView;
+        private final SimpleDraweeView mClusterImageView;
         private final int mDimension;
+//        private final SimpleDraweeView draweeView;
 
         public PersonRenderer(ThemedReactContext reactContext) {
             super(reactContext.getApplicationContext(), map, mClusterManager);
-            mIconGenerator = new IconGenerator(reactContext.getApplicationContext());
+//            mIconGenerator = new IconGenerator(reactContext.getApplicationContext());
             mClusterIconGenerator = new IconGenerator(reactContext.getApplicationContext());
 
 //            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
 
             View multiProfile = reactContext.getCurrentActivity().getLayoutInflater().inflate(R.layout.multi_profile, null);
             mClusterIconGenerator.setContentView(multiProfile);
-            mClusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
+            mClusterImageView = (SimpleDraweeView) multiProfile.findViewById(R.id.my_image_view);
 
             mImageView = new ImageView(reactContext);
             mDimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
             mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
             int padding = (int) getResources().getDimension(R.dimen.custom_profile_padding);
             mImageView.setPadding(padding, padding, padding, padding);
-            mIconGenerator.setContentView(mImageView);
+//            mIconGenerator.setContentView(mImageView);
+
+//            draweeView = new SimpleDraweeView(reactContext);
+//            mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
+//            mImageView.setPadding(padding, padding, padding, padding);
+//            mIconGenerator.setContentView(mImageView);
+
+//            draweeView = (SimpleDraweeView) findViewById(R.id.my_image_view);
         }
 
         @Override
@@ -190,14 +201,18 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             mImageView.setImageResource(post.profilePhoto);
 //            mImageView.setLayoutParams(new ViewGroup.LayoutParams((int) 100, (int) 100));
             /* TODO Quick test*/
-            LayoutParams params = (LayoutParams) mImageView.getLayoutParams();
-            params.height = (int) post.getWeightedValue() * 20;
-            params.width = (int) post.getWeightedValue() * 20;
-            mImageView.setLayoutParams(params);
+//            LayoutParams params = (LayoutParams) mImageView.getLayoutParams();
+//            params.height = (int) post.getWeightedValue() * 20;
+//            params.width = (int) post.getWeightedValue() * 20;
+//            mImageView.setLayoutParams(params);
             /***********/
+//            Uri uri = Uri.parse("https://raw.githubusercontent.com/facebook/fresco/master/docs/static/logo.png");
+//            if(draweeView != null){
+//                draweeView.setImageURI(uri);
+//            }
 
-            Bitmap icon = mIconGenerator.makeIcon();
-            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(post.name);
+//            Bitmap icon = mIconGenerator.makeIcon();
+//            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(post.name);
         }
 
         @Override
@@ -210,7 +225,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
             for (AheadMapMarker p : cluster.getItems()) {
                 // Draw 4 at most.
-                if (profilePhotos.size() == 1) break;
+                if (profilePhotos.size() == 4) break;
                 Drawable drawable = getResources().getDrawable(p.profilePhoto);
                 drawable.setBounds(0, 0, width, height);
                 profilePhotos.add(drawable);
@@ -218,7 +233,8 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             MultiDrawable multiDrawable = new MultiDrawable(profilePhotos);
             multiDrawable.setBounds(0, 0, width, height);
 
-            mClusterImageView.setImageDrawable(multiDrawable);
+            Uri uri = Uri.parse("https://3.bp.blogspot.com/-W__wiaHUjwI/Vt3Grd8df0I/AAAAAAAAA78/7xqUNj8ujtY/s1600/image02.png");
+            mClusterImageView.setImageURI(uri);
             Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
         }
