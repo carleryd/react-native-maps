@@ -6,15 +6,10 @@
              android:layout_width="@dimen/custom_profile_image"
              android:layout_height="@dimen/custom_profile_image">
 
-    <ImageView
-            android:id="@+id/image"
-            android:layout_width="@dimen/custom_profile_image"
-            android:layout_height="@dimen/custom_profile_image"/>
-
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/my_image_view"
-        android:layout_width="130dp"
-        android:layout_height="130dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         fresco:placeholderImage="@drawable/ruth"
         />
 

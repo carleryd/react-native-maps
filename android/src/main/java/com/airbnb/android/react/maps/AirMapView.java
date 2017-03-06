@@ -7,14 +7,11 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -22,9 +19,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import com.facebook.drawee.view.DraweeView;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReadableArray;
@@ -50,7 +45,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.maps.android.clustering.Cluster;
-import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
@@ -161,58 +155,38 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
      * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
      */
     private class PersonRenderer extends DefaultClusterRenderer<AheadMapMarker> {
-//        private final IconGenerator mIconGenerator;
+        private final IconGenerator mIconGenerator;
         private final IconGenerator mClusterIconGenerator;
-        private final ImageView mImageView;
-        private final SimpleDraweeView mClusterImageView;
+        private final SimpleDraweeView mDraweeView;
+        private final SimpleDraweeView mClusterDraweeView;
         private final int mDimension;
-//        private final SimpleDraweeView draweeView;
 
         public PersonRenderer(ThemedReactContext reactContext) {
             super(reactContext.getApplicationContext(), map, mClusterManager);
-//            mIconGenerator = new IconGenerator(reactContext.getApplicationContext());
+            mIconGenerator = new IconGenerator(reactContext.getApplicationContext());
             mClusterIconGenerator = new IconGenerator(reactContext.getApplicationContext());
 
-//            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
 
             View multiProfile = reactContext.getCurrentActivity().getLayoutInflater().inflate(R.layout.multi_profile, null);
             mClusterIconGenerator.setContentView(multiProfile);
-            mClusterImageView = (SimpleDraweeView) multiProfile.findViewById(R.id.my_image_view);
+            mClusterDraweeView = (SimpleDraweeView) multiProfile.findViewById(R.id.my_image_view);
 
-            mImageView = new ImageView(reactContext);
+            mDraweeView = new SimpleDraweeView(reactContext);
             mDimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
-            mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
+            mDraweeView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
             int padding = (int) getResources().getDimension(R.dimen.custom_profile_padding);
-            mImageView.setPadding(padding, padding, padding, padding);
-//            mIconGenerator.setContentView(mImageView);
+            mDraweeView.setPadding(padding, padding, padding, padding);
+            mIconGenerator.setContentView(mDraweeView);
 
-//            draweeView = new SimpleDraweeView(reactContext);
-//            mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
-//            mImageView.setPadding(padding, padding, padding, padding);
-//            mIconGenerator.setContentView(mImageView);
-
-//            draweeView = (SimpleDraweeView) findViewById(R.id.my_image_view);
         }
 
         @Override
         protected void onBeforeClusterItemRendered(AheadMapMarker post, MarkerOptions markerOptions) {
             // Draw a single person.
             // Set the info window to show their name.
-            mImageView.setImageResource(post.profilePhoto);
-//            mImageView.setLayoutParams(new ViewGroup.LayoutParams((int) 100, (int) 100));
-            /* TODO Quick test*/
-//            LayoutParams params = (LayoutParams) mImageView.getLayoutParams();
-//            params.height = (int) post.getWeightedValue() * 20;
-//            params.width = (int) post.getWeightedValue() * 20;
-//            mImageView.setLayoutParams(params);
-            /***********/
-//            Uri uri = Uri.parse("https://raw.githubusercontent.com/facebook/fresco/master/docs/static/logo.png");
-//            if(draweeView != null){
-//                draweeView.setImageURI(uri);
-//            }
-
-//            Bitmap icon = mIconGenerator.makeIcon();
-//            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(post.name);
+            mDraweeView.setImageURI(post.getImage());
+            Bitmap icon = mIconGenerator.makeIcon();
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(post.name);
         }
 
         @Override
@@ -220,7 +194,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
             AheadMapMarker first = cluster.getItems().iterator().next();
 
-            mClusterImageView.setImageURI(first.getImage());
+            mClusterDraweeView.setImageURI(first.getImage());
             Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
         }
