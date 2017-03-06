@@ -37,6 +37,7 @@ const propTypes = {
 
     weightedValue: PropTypes.number.isRequired,
     identifier: PropTypes.string.isRequired,
+    image: PropTypes.any.isRequired,
     /**
      * Callback that is called when the user presses on the marker
      */

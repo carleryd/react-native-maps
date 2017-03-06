@@ -34,6 +34,7 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     private String identifier;
     private float weightedValue;
     private DataSource<CloseableReference<CloseableImage>> dataSource;
+    private Uri uri;
 
     public AheadMapMarker(Context context) {
         super(context);
@@ -68,34 +69,20 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     }
 
     public void setImage(String uri) {
-        if (uri == null) {
-//            iconBitmapDescriptor = null;
-//            update();
-        } else if (uri.startsWith("http://") || uri.startsWith("https://") ||
-                uri.startsWith("file://")) {
-            ImageRequest imageRequest = ImageRequestBuilder
-                    .newBuilderWithSource(Uri.parse(uri))
-                    .build();
-
-            ImagePipeline imagePipeline = Fresco.getImagePipeline();
-            dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
-//            DraweeController controller = Fresco.newDraweeControllerBuilder()
-//                    .setImageRequest(imageRequest)
-//                    .setControllerListener(mLogoControllerListener)
-//                    .setOldController(logoHolder.getController())
-//                    .build();
-//            logoHolder.setController(controller);
-        } else {
-//            iconBitmapDescriptor = getBitmapDescriptorByName(uri);
-//            update();
+        if(uri == null) {
+            this.uri = Uri.parse("https://3.bp.blogspot.com/-W__wiaHUjwI/Vt3Grd8df0I/AAAAAAAAA78/7xqUNj8ujtY/s1600/image02.png");
+        }else{
+            this.uri = Uri.parse(uri);
         }
+    }
+
+    public Uri getImage(){
+        return uri;
     }
 
     public void setWeightedValue(float value) {
         weightedValue = value;
     }
-
-
 
     public float getWeightedValue(){
         return weightedValue;
@@ -124,4 +111,7 @@ public class AheadMapMarker extends AirMapFeature implements ClusterItem {
     public String getIdentifier() {
         return this.identifier;
     }
+
+
+
 }

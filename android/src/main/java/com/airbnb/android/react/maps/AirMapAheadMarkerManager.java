@@ -38,11 +38,9 @@ public class AirMapAheadMarkerManager extends ViewGroupManager<AheadMapMarker> {
         view.setIdentifier(identifier);
     }
 
-
-
-//    @ReactProp(name = "image")
-//    public void setImage(AirMapMarker view, @Nullable String source) {
-//        view.setImage(source);
-//    }
+    @ReactProp(name = "image")
+    public void setImage(AheadMapMarker view, @Nullable String source) {
+        view.setImage(source);
+    }
 
 }
