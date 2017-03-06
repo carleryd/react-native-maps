@@ -93,14 +93,50 @@ MKMapRect FBMapRectForBoundingBox(FBBoundingBox boundingBox)
 
 BOOL FBBoundingBoxContainsCoordinate(FBBoundingBox box, CLLocationCoordinate2D coordinate)
 {
-    BOOL containsX = box.x0 <= coordinate.latitude && coordinate.latitude <= box.xf;
-    BOOL containsY = box.y0 <= coordinate.longitude && coordinate.longitude <= box.yf;
-    return containsX && containsY;
+    /**
+     * If box spans over the so called "Twilight zone" in the Pacific Ocean where longitude
+     * ends at 180 and starts at -180, we will have to check two individual boxes.
+     */
+    if (box.y0 < box.yf) {
+        BOOL containsX = box.x0 <= coordinate.latitude && coordinate.latitude <= box.xf;
+        BOOL containsY = box.y0 <= coordinate.longitude && coordinate.longitude <= box.yf;
+        return containsX && containsY;
+    } else {
+        CGFloat maxLongitude = 180.0;
+        FBBoundingBox westBox = box;
+        westBox.yf = maxLongitude;
+        BOOL westBoxContainsCoordinate = FBBoundingBoxContainsCoordinate(westBox, coordinate);
+        
+        CGFloat minLongitude = -180.0;
+        FBBoundingBox eastBox = box;
+        eastBox.y0 = minLongitude;
+        BOOL eastBoxContainsCoordinate = FBBoundingBoxContainsCoordinate(eastBox, coordinate);
+        
+        return westBoxContainsCoordinate || eastBoxContainsCoordinate;
+    }
 }
 
 BOOL FBBoundingBoxIntersectsBoundingBox(FBBoundingBox box1, FBBoundingBox box2)
 {
-    return (box1.x0 <= box2.xf && box1.xf >= box2.x0 && box1.y0 <= box2.yf && box1.yf >= box2.y0);
+    /**
+     * If box2 spans over the so called "Twilight zone" in the Pacific Ocean where longitude
+     * ends at 180 and starts at -180, we will have to check two individual boxes.
+     */
+    if (box2.yf > box2.y0) {
+        return (box1.x0 <= box2.xf && box1.xf >= box2.x0 && box1.y0 <= box2.yf && box1.yf >= box2.y0);
+    } else {
+        CGFloat maxLongitude = 180.0;
+        FBBoundingBox westBox2 = box2;
+        westBox2.yf = maxLongitude;
+        BOOL intersectsWestPart = FBBoundingBoxIntersectsBoundingBox(box1, westBox2);
+        
+        CGFloat minLongitude = -180.0;
+        FBBoundingBox eastBox2 = box2;
+        eastBox2.y0 = minLongitude;
+        BOOL intersectsEastPart = FBBoundingBoxIntersectsBoundingBox(box1, eastBox2);
+        
+        return intersectsWestPart || intersectsEastPart;
+    }
 }
 
 @end
