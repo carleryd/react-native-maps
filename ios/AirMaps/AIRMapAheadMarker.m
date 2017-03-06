@@ -93,6 +93,7 @@
                                                                                self.size.height)];
         
         imageView.image = image;
+        [imageView setBackgroundColor:[[self borderColor] representedColor]];
         imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageView.clipsToBounds = YES;
         imageView.layer.cornerRadius = self.size.width / 2;
