@@ -214,7 +214,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         event.putString("action", "marker-press");
         event.putString("id", item.getIdentifier());
         manager.pushEvent(this, "onMarkerPress", event);
-        return false;
+        return true;
     }
 
     @Override
