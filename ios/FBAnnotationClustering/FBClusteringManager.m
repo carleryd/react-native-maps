@@ -7,6 +7,7 @@
 //
 
 #import "FBQuadTree.h"
+#import "FBClusteringManager.h"
 #import "AIRMapMarker.h"
 #import "AIRMapAheadMarker.h"
 #import "AIRMapAheadMarkerUtilities.h"
@@ -19,10 +20,12 @@
  * a way to convert these points to pixels and vice versa.
  * When we have the distance between two markers in pixels we can determine whether two markers collide.
  */
-MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
-                               AIRMapAheadMarker *mb,
-                               MKMapRect mapRect,
-                               CGRect screenRect)
+MarkerCoveredState checkCollision(CLLocationCoordinate2D coordA,
+                                  CLLocationCoordinate2D coordB,
+                                  CGFloat radiusA,
+                                  CGFloat radiusB,
+                                  MKMapRect mapRect,
+                                  CGRect screenRect)
 {
     CGFloat screenWidth = screenRect.size.width;
     CGFloat screenHeight = screenRect.size.height;
@@ -31,12 +34,12 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
     CGFloat pixelPerRectPointX = screenWidth / rectWidth;
     CGFloat pixelPerRectPointY = screenHeight / rectHeight;
     
-    CGFloat latA = ma.coordinate.latitude;
-    CGFloat lngA = ma.coordinate.longitude;
+    CGFloat latA = coordA.latitude;
+    CGFloat lngA = coordA.longitude;
     MKMapPoint pointA = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latA, lngA));
     
-    CGFloat latB = mb.coordinate.latitude;
-    CGFloat lngB = mb.coordinate.longitude;
+    CGFloat latB = coordB.latitude;
+    CGFloat lngB = coordB.longitude;
     MKMapPoint pointB = MKMapPointForCoordinate(CLLocationCoordinate2DMake(latB, lngB));
     
     CGFloat distanceX = fabsf(pointA.x - pointB.x);
@@ -44,11 +47,11 @@ MarkerCoveredState checkCollisionWithMarkerA(AIRMapAheadMarker *ma,
     CGFloat pixelDistanceX = distanceX * pixelPerRectPointX;
     CGFloat pixelDistanceY = distanceY * pixelPerRectPointY;
     CGFloat pixelHypotenuse = sqrt(pow(pixelDistanceX, 2.0) + pow(pixelDistanceY, 2.0));
-    CGFloat combinedRadius = [ma radius] + [mb radius];
+    CGFloat combinedRadius = radiusA + radiusB;
     
-    MarkerCoveredState coveredState = ((pixelHypotenuse - [ma radius]) < 0)
+    MarkerCoveredState coveredState = ((pixelHypotenuse - radiusA) < 0)
         ? FULLY_COVERED
-        : ((pixelHypotenuse - [ma radius] - [mb radius]) < 0)
+        : ((pixelHypotenuse - radiusA - radiusB) < 0)
             ? PARTIALLY_COVERED
             : NOT_COVERED;
     
@@ -129,7 +132,9 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
  */
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
 {
-    return [self largestFirstClusteringWithMapRect:rect withAheadMarkerLimit:5];
+    return [self largestFirstClusteringWithMapRect:rect
+                              withAheadMarkerLimit:5
+            ];
 }
 
 /**
@@ -199,7 +204,12 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
                 continue;
             }
             
-            MarkerCoveredState mbCoveredState = checkCollisionWithMarkerA(ma, mb, mapRect, screenRect);
+            MarkerCoveredState mbCoveredState = checkCollision([ma coordinate],
+                                                               [mb coordinate],
+                                                               [ma radius],
+                                                               [mb radius],
+                                                               mapRect,
+                                                               screenRect);
             
             switch (mbCoveredState) {
                 case NOT_COVERED:
@@ -221,6 +231,7 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
             }
         }
     }
+    
     for (AIRMapAheadMarker *marker in sortedAheadMarkers) {
         /**
          * We only want to create as many AIRMapAheadMarkers as the method input aheadMarkerLimit
@@ -276,6 +287,7 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
             }
         }
     }
+    
     [self.lock unlock];
     
     return [NSArray arrayWithArray:annotationsToBeShown];

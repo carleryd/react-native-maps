@@ -508,7 +508,30 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 {
     if ([anView isKindOfClass:[FBAnnotationDot class]]) {
         FBAnnotationDot *dot = (FBAnnotationDot *)anView;
-        return [dot getAnnotationView];
+        
+        /**
+         * This will create reusable annotations for the amount of different annotation views we have.
+         * Currently only one for each different alpha of the dot.
+         */
+        NSString *identifier = [NSString stringWithFormat:@"dotAnnotationWithAlpha%f", [dot alpha]];
+        MKAnnotationView *dotAnView = nil;
+        dotAnView = [mapView dequeueReusableAnnotationViewWithIdentifier:identifier];
+        if (dotAnView == nil) {
+            dotAnView = [[MKAnnotationView alloc] initWithAnnotation:dot
+                                                     reuseIdentifier:identifier
+                         ];
+            dotAnView.enabled = false;
+            
+            /* Use NSString-Color library to intelligently convert string colors to hex.
+             * See https://github.com/nicolasgoutaland/NSString-Color
+             */
+            dotAnView.image = [AIRMapAheadMarkerUtilities createCircleWithColor:[dot color]
+                                                                     withRadius:[dot radius]
+                               ];
+            [dotAnView setAlpha:[dot alpha]];
+        }
+
+        return dotAnView;
     }
     
     NSInteger clusterIndicatorTag = 1234;
@@ -696,27 +719,31 @@ static int kDragCenterContext;
      * If we use clustering, trigger cluster for new region.
      */
     if (mapView.clusterMarkers) {
-        void (^triggerClustering)();
-        triggerClustering = ^void {
-            double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
-            NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect
-                                                                                  withZoomScale:scale
-                                    ];
-        
-            [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
-        };
-
-        NSOperationQueue *q = [mapView nsOperationQueue];
-        /**
-         * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
-         * If this happens just cancel those operations and start a new one.
-         */
-        if ([q operationCount] > 0) {
-            [q cancelAllOperations];
-        }
-        __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
-        [q addOperation:operation];
+        [self addClusteringOperationOnMapView:mapView];
     }
+}
+
+- (void)addClusteringOperationOnMapView:(AIRMap *)mapView {
+    void (^triggerClustering)();
+    triggerClustering = ^void {
+        double scale = mapView.bounds.size.width / mapView.visibleMapRect.size.width;
+        NSArray *annotations = [mapView.clusteringManager clusteredAnnotationsWithinMapRect:mapView.visibleMapRect
+                                                                              withZoomScale:scale
+                                ];
+        
+        [mapView.clusteringManager displayAnnotations:annotations onMapView:mapView];
+    };
+    
+    NSOperationQueue *q = [mapView nsOperationQueue];
+    /**
+     * Sometimes we get several requests to run clustering and a previous clustering operation is not done.
+     * If this happens just cancel those operations and start a new one.
+     */
+    if ([q operationCount] > 0) {
+        [q cancelAllOperations];
+    }
+    __block NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:triggerClustering];
+    [q addOperation:operation];
 }
 
 - (void)mapViewWillStartRenderingMap:(AIRMap *)mapView
@@ -781,7 +808,22 @@ static int kDragCenterContext;
 
     // Continously observe region changes
     [self _emitRegionChangeEvent:mapView continuous:YES];
+    /**
+     * If we use clustering, trigger cluster for new region.
+     */
+    if (mapView.clusterMarkers) {
+//        SEL action = @selector(addClusteringOperationOnMapView:);
+//        [self debounce:action withMapView:mapView delay:0.100];
+        [self addClusteringOperationOnMapView:mapView];
+    }
 }
+
+//- (void)debounce:(SEL)action withMapView:(AIRMap *)mapView delay:(NSTimeInterval)delay
+//{
+//    __weak typeof(self) weakSelf = self;
+//    [NSObject cancelPreviousPerformRequestsWithTarget:weakSelf selector:action object:mapView];
+//    [weakSelf performSelector:action withObject:mapView afterDelay:delay];
+//}
 
 - (void)_emitRegionChangeEvent:(AIRMap *)mapView continuous:(BOOL)continuous
 {

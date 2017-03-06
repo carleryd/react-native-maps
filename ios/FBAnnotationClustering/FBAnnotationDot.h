@@ -17,11 +17,8 @@
 
 /// Coordinate of the annotation. It will always be set.
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
-
 @property (nonatomic, strong) UIColor *color;
-
 @property (nonatomic, assign) CGFloat alpha;
-
-- (MKAnnotationView *)getAnnotationView;
+@property (nonatomic, assign) CGFloat radius;
 
 @end
