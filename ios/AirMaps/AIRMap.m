@@ -105,7 +105,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
          * Add the annotation both to the map, and to the clustering manager.
          * The clustering manager determines if the annotation should be clustered.
          */
-        [self addAnnotation:(id<MKAnnotation>)subview];
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         [self addAnnotation:(id<MKAnnotation>)subview];
@@ -140,7 +139,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // similarly, when the children are being removed we have to do the appropriate
     // underlying mapview action here.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        [self removeAnnotation:(id<MKAnnotation>) subview];
         [self.clusteringManager removeAnnotations:@[(id <MKAnnotation>) subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         [self removeAnnotation:(id<MKAnnotation>) subview];
@@ -183,6 +181,10 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
         return [super gestureRecognizer:gestureRecognizer shouldReceiveTouch:touch];
 }
 
+/**
+ * Run when the react subviews has changed. Using this function we can remove several markers
+ * at once on the RN side and only trigger this function once, compared to removeReactSubview.
+ */
 - (void)didUpdateReactSubviews {
     for (UIView *subview in _reactSubviews) {
         [self addSubview:subview];
@@ -236,7 +238,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
  * When we stop touching map, and we have an active marker pressed,
  * send markerPress to JS land and set to no active marker pressed.
  */
-- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     AIRMapAheadMarker *marker = [[AIRMapAheadMarkerUtilities sharedInstance] prevPressedMarker];
     if (marker != nil) {
         [[AIRMapAheadMarkerUtilities sharedInstance] setPrevPressedMarker:nil];
@@ -248,7 +250,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     }
 }
 
-- (void) triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
+- (void)triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
     [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
     ImportantStatus newImportantStatus = [marker importantStatus];
     newImportantStatus.isImportant = NO;
