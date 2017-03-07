@@ -66,6 +66,10 @@
  */
 - (void)removeAnnotations:(NSArray *)annotations;
 
+/**
+ Return the top AIRMapAheadMarker in given rect
+ */
+- (id)getTopAheadMarkerInMapRect:(MKMapRect)mapRect;
 
 /**
  Method that return array of your custom annotations or annotation clusters.

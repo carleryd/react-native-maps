@@ -63,5 +63,6 @@ extern const CGFloat AIRMapZoomBoundBuffer;
 - (void)cacheViewIfNeeded;
 - (void)beginLoading;
 - (void)finishLoading;
+- (void)triggerMarkerPressWithMarker:(id)marker;
 
 @end

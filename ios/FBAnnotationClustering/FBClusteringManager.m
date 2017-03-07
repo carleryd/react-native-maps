@@ -137,6 +137,21 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
             ];
 }
 
+- (id)getTopAheadMarkerInMapRect:(MKMapRect)mapRect
+{
+    FBBoundingBox mapBox = FBBoundingBoxForMapRect(mapRect);
+    
+    NSMutableArray *aheadMarkers = [[NSMutableArray alloc] init];
+    [self.tree enumerateAnnotationsInBox:mapBox usingBlock:^(id<MKAnnotation> obj) {
+        if ([obj isKindOfClass:[AIRMapAheadMarker class]]) {
+            [aheadMarkers addObject:obj];
+        }
+    }];
+    
+    NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
+    return [sortedAheadMarkers firstObject];
+}
+
 /**
  * Our own clustering function.
  * It checks markers against each other and creates clusters based on the largest markers.

@@ -250,22 +250,23 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     }
 }
 
-- (void)triggerMarkerPressWithMarker:(AIRMapAheadMarker *)marker {
-    [[marker getAnnotationView] setAlpha:marker.importantStatus.unimportantOpacity];
-    ImportantStatus newImportantStatus = [marker importantStatus];
+- (void)triggerMarkerPressWithMarker:(id)marker {
+    AIRMapAheadMarker *aheadMarker = marker;
+    [[aheadMarker getAnnotationView] setAlpha:aheadMarker.importantStatus.unimportantOpacity];
+    ImportantStatus newImportantStatus = [aheadMarker importantStatus];
     newImportantStatus.isImportant = NO;
-    [marker setImportantStatus:newImportantStatus];
+    [aheadMarker setImportantStatus:newImportantStatus];
     
     id markerPressEvent = @{
                             @"action": @"marker-press",
-                            @"id": marker.identifier ?: @"unknown",
+                            @"id": aheadMarker.identifier ?: @"unknown",
                             @"coordinate": @{
-                                    @"latitude": @(marker.coordinate.latitude),
-                                    @"longitude": @(marker.coordinate.longitude)
+                                    @"latitude": @(aheadMarker.coordinate.latitude),
+                                    @"longitude": @(aheadMarker.coordinate.longitude)
                                     }
                             };
 
-    if (marker.onPress) marker.onPress(markerPressEvent);
+    if (aheadMarker.onPress) aheadMarker.onPress(markerPressEvent);
 }
 
 // Allow touches to be sent to our calloutview.
