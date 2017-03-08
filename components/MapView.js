@@ -386,7 +386,7 @@ class MapView extends React.Component {
 
         this._onMapReady = this._onMapReady.bind(this);
         this._onChange = this._onChange.bind(this);
-        this._onDerp = this._onDerp.bind(this);
+        this._onTopAheadMarkerChange = this._onTopAheadMarkerChange.bind(this);
         this._onLayout = this._onLayout.bind(this);
     }
 
@@ -459,10 +459,10 @@ class MapView extends React.Component {
         }
     }
 
-    _onDerp(event) {
-        if (event.nativeEvent.postId) {
+    _onTopAheadMarkerChange(event) {
+        if (event.nativeEvent.topPostIds) {
             if (this.props.onTopAheadMarkerChange) {
-                this.props.onTopAheadMarkerChange(event.nativeEvent.postId);
+                this.props.onTopAheadMarkerChange(event.nativeEvent.topPostIds);
             }
         }
     }
@@ -624,7 +624,7 @@ class MapView extends React.Component {
                 region: null,
                 initialRegion: null,
                 onChange: this._onChange,
-                onDerp: this._onDerp,
+                onTopAheadMarkerChange: this._onTopAheadMarkerChange,
                 onMapReady: this._onMapReady,
                 onLayout: this._onLayout,
             };
@@ -642,7 +642,7 @@ class MapView extends React.Component {
                 region: null,
                 initialRegion: null,
                 onChange: this._onChange,
-                onDerp: this._onDerp,
+                onTopAheadMarkerChange: this._onTopAheadMarkerChange,
                 onMapReady: this._onMapReady,
                 onLayout: this._onLayout,
             };
@@ -682,7 +682,7 @@ const nativeComponent = Component =>
     requireNativeComponent(Component, MapView, {
         nativeOnly: {
             onChange: true,
-            onDerp: true,
+            onTopAheadMarkerChange: true,
             onMapReady: true,
             handlePanDrag: true,
         },
@@ -705,7 +705,7 @@ const AIRMapLite = NativeModules.UIManager.AIRMapLite &&
     requireNativeComponent("AIRMapLite", MapView, {
         nativeOnly: {
             onChange: true,
-            onDerp: true,
+            onTopAheadMarkerChange: true,
             onMapReady: true,
             handlePanDrag: true,
         },

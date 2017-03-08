@@ -78,6 +78,9 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
 
 
 @implementation FBClusteringManager
+{
+    NSArray *_topAheadMarkerIds;
+}
 
 - (id)init
 {
@@ -155,6 +158,27 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
     return [sortedAheadMarkers firstObject];
 }
 
+- (void)sendTopPostIdsToJSUsingMapView:(AIRMap *)mapView usingSortedMarkers:(NSArray *)sortedMarkers
+{
+    NSMutableArray *topAheadMarkerIds = [NSMutableArray arrayWithCapacity:[sortedMarkers count]];
+    [sortedMarkers enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [topAheadMarkerIds addObject:[(AIRMapAheadMarker *)obj postId]];
+    }];
+    
+    /**
+     * If we have new top markers on our screen we want to inform JS of this,
+     * if they are the same it's unnecessary overhead to send it over the bridge.
+     */
+    if ([_topAheadMarkerIds isEqualToArray:topAheadMarkerIds] == NO) {
+        if (mapView.onTopAheadMarkerChange && [topAheadMarkerIds count] > 0) {
+            mapView.onTopAheadMarkerChange(@{
+                               @"topPostIds": topAheadMarkerIds,
+                               });
+        }
+        _topAheadMarkerIds = topAheadMarkerIds;
+    }
+}
+
 /**
  * Our own clustering function.
  * It checks markers against each other and creates clusters based on the largest markers.
@@ -199,11 +223,7 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
     
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
     
-    if ([mapView onDerp] && [sortedAheadMarkers count] > 0) {
-        mapView.onDerp(@{
-                         @"postId": [[sortedAheadMarkers firstObject] postId],
-                         });
-    }
+    [self sendTopPostIdsToJSUsingMapView:mapView usingSortedMarkers:sortedAheadMarkers];
     
     /**
      * Beginning at head, look through list and check collision between each annotation.
