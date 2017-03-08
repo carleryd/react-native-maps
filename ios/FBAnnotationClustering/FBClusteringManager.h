@@ -79,7 +79,8 @@
  @returns Array of annotations objects of type @c FBAnnotationCluster or your custom class.
  */
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
-                                 withZoomScale:(double)zoomScale;
+                                 withZoomScale:(double)zoomScale
+                                   withMapView:(MKMapView *)mapView;
 
 - (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
                                  withZoomScale:(double)zoomScale

@@ -41,6 +41,7 @@ RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
 RCT_EXPORT_VIEW_PROPERTY(importantStatus, ImportantStatus)
 RCT_EXPORT_VIEW_PROPERTY(radius, float)
+RCT_EXPORT_VIEW_PROPERTY(postId, NSString)
 RCT_EXPORT_VIEW_PROPERTY(borderColor, NSString)
 
 

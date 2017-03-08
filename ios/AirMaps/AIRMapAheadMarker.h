@@ -44,6 +44,7 @@ typedef enum {
 @property (nonatomic, assign) MarkerCoveredState coveredState;
 @property (nonatomic, assign) ImportantStatus importantStatus;
 @property (nonatomic, assign) float radius;
+@property (nonatomic, copy) NSString *postId;
 /**
  * TODO: Is it possible to set this as UIColor directly using representedColor func?
  */

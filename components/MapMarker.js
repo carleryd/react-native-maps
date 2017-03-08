@@ -1,95 +1,96 @@
-import React, { PropTypes } from 'react';
+import React, { PropTypes } from "react";
 import {
-  View,
-  StyleSheet,
-  Platform,
-  NativeModules,
-  Animated,
-  findNodeHandle,
-} from 'react-native';
+    View,
+    StyleSheet,
+    Platform,
+    NativeModules,
+    Animated,
+    findNodeHandle,
+} from "react-native";
 
-import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
+import resolveAssetSource
+    from "react-native/Libraries/Image/resolveAssetSource";
 import decorateMapComponent, {
-  SUPPORTED,
-  USES_DEFAULT_IMPLEMENTATION,
-} from './decorateMapComponent';
+    SUPPORTED,
+    USES_DEFAULT_IMPLEMENTATION,
+} from "./decorateMapComponent";
 
 const viewConfig = {
-  uiViewClassName: 'AIR<provider>MapMarker',
-  validAttributes: {
-    coordinate: true,
-  },
+    uiViewClassName: "AIR<provider>MapMarker",
+    validAttributes: {
+        coordinate: true,
+    },
 };
 
 const propTypes = {
-  ...View.propTypes,
+    ...View.propTypes,
 
-  // TODO(lmr): get rid of these?
-  identifier: PropTypes.string,
-  reuseIdentifier: PropTypes.string,
+    // TODO(lmr): get rid of these?
+    identifier: PropTypes.string,
+    reuseIdentifier: PropTypes.string,
 
-  /**
+    /**
    * The title of the marker. This is only used if the <Marker /> component has no children that
    * are an `<MapView.Callout />`, in which case the default callout behavior will be used, which
    * will show both the `title` and the `description`, if provided.
    */
-  title: PropTypes.string,
+    title: PropTypes.string,
 
-  /**
+    /**
    * The description of the marker. This is only used if the <Marker /> component has no children
    * that are an `<MapView.Callout />`, in which case the default callout behavior will be used,
    * which will show both the `title` and the `description`, if provided.
    */
-  description: PropTypes.string,
+    description: PropTypes.string,
 
-  /**
+    /**
    * A custom image to be used as the marker's icon. Only local image resources are allowed to be
    * used.
    */
-  image: PropTypes.any,
+    image: PropTypes.any,
 
-  /**
+    /**
    * A replacement source for a default annotation.
    */
-  dotColor: PropTypes.string,
+    dotColor: PropTypes.string,
 
-  /**
+    /**
    * Opacity level of view/image based markers
    */
-  opacity: PropTypes.number,
+    opacity: PropTypes.number,
 
-  /**
+    /**
    * Information about the importance of this marker. This is used to determine clustering and
    * appearence of a marker.
    */
-  importantStatus: PropTypes.shape({
-      isImportant: PropTypes.bool,
-      unimportantOpacity: PropTypes.number,
-  }),
+    importantStatus: PropTypes.shape({
+        isImportant: PropTypes.bool,
+        unimportantOpacity: PropTypes.number,
+    }),
 
-  /**
+    /**
    * Used to calculate clustering and size of marker.
    */
-  radius: PropTypes.number,
+    radius: PropTypes.number,
 
-  /**
+    /**
    * If no custom marker view or custom image is provided, the platform default pin will be used,
    * which can be customized by this color. Ignored if a custom marker is being used.
    */
-  pinColor: PropTypes.string,
+    pinColor: PropTypes.string,
 
-  /**
+    /**
    * The coordinate for the marker.
    */
-  coordinate: PropTypes.shape({
-    /**
+    coordinate: PropTypes.shape({
+        /**
      * Coordinates for the anchor point of the marker.
      */
-    latitude: PropTypes.number.isRequired,
-    longitude: PropTypes.number.isRequired,
-  }).isRequired,
+        latitude: PropTypes.number.isRequired,
+        longitude: PropTypes.number.isRequired,
+    }).isRequired,
 
-  /**
+    /**
    * The offset (in points) at which to display the view.
    *
    * By default, the center point of an annotation view is placed at the coordinate point of the
@@ -101,15 +102,15 @@ const propTypes = {
    *
    * @platform ios
    */
-  centerOffset: PropTypes.shape({
-    /**
+    centerOffset: PropTypes.shape({
+        /**
      * Offset from the anchor point
      */
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-  }),
+        x: PropTypes.number.isRequired,
+        y: PropTypes.number.isRequired,
+    }),
 
-  /**
+    /**
    * The offset (in points) at which to place the callout bubble.
    *
    * This property determines the additional distance by which to move the callout bubble. When
@@ -122,15 +123,15 @@ const propTypes = {
    *
    * @platform ios
    */
-  calloutOffset: PropTypes.shape({
-    /**
+    calloutOffset: PropTypes.shape({
+        /**
      * Offset to the callout
      */
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-  }),
+        x: PropTypes.number.isRequired,
+        y: PropTypes.number.isRequired,
+    }),
 
-  /**
+    /**
    * Sets the anchor point for the marker.
    *
    * The anchor specifies the point in the icon image that is anchored to the marker's position
@@ -146,15 +147,15 @@ const propTypes = {
    *
    * @platform android
    */
-  anchor: PropTypes.shape({
-    /**
+    anchor: PropTypes.shape({
+        /**
      * Offset to the callout
      */
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-  }),
+        x: PropTypes.number.isRequired,
+        y: PropTypes.number.isRequired,
+    }),
 
-  /**
+    /**
    * Specifies the point in the marker image at which to anchor the callout when it is displayed.
    * This is specified in the same coordinate system as the anchor. See the `andor` prop for more
    * details.
@@ -165,130 +166,132 @@ const propTypes = {
    *
    * @platform android
    */
-  calloutAnchor: PropTypes.shape({
-    /**
+    calloutAnchor: PropTypes.shape({
+        /**
      * Offset to the callout
      */
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-  }),
+        x: PropTypes.number.isRequired,
+        y: PropTypes.number.isRequired,
+    }),
 
-  /**
+    /**
    * Sets whether this marker should be flat against the map true or a billboard facing the
    * camera false.
    *
    * @platform android
    */
-  flat: PropTypes.bool,
+    flat: PropTypes.bool,
 
-  draggable: PropTypes.bool,
+    draggable: PropTypes.bool,
 
-  /**
+    /**
    * Callback that is called when the user presses on the marker
    */
-  onPress: PropTypes.func,
+    onPress: PropTypes.func,
 
-  /**
+    /**
    * Callback that is called when the user selects the marker, before the callout is shown.
    *
    * @platform ios
    */
-  onSelect: PropTypes.func,
+    onSelect: PropTypes.func,
 
-  /**
+    /**
    * Callback that is called when the marker is deselected, before the callout is hidden.
    *
    * @platform ios
    */
-  onDeselect: PropTypes.func,
+    onDeselect: PropTypes.func,
 
-  /**
+    /**
    * Callback that is called when the user taps the callout view.
    */
-  onCalloutPress: PropTypes.func,
+    onCalloutPress: PropTypes.func,
 
-  /**
+    /**
    * Callback that is called when the user initiates a drag on this marker (if it is draggable)
    */
-  onDragStart: PropTypes.func,
+    onDragStart: PropTypes.func,
 
-  /**
+    /**
    * Callback called continuously as the marker is dragged
    */
-  onDrag: PropTypes.func,
+    onDrag: PropTypes.func,
 
-  /**
+    /**
    * Callback that is called when a drag on this marker finishes. This is usually the point you
    * will want to setState on the marker's coordinate again
    */
-  onDragEnd: PropTypes.func,
+    onDragEnd: PropTypes.func,
 };
 
 const defaultProps = {
-  onPress() {},
+    onPress() {},
 };
 
 class MapMarker extends React.Component {
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.showCallout = this.showCallout.bind(this);
-    this.hideCallout = this.hideCallout.bind(this);
-  }
+        this.showCallout = this.showCallout.bind(this);
+        this.hideCallout = this.hideCallout.bind(this);
+    }
 
-  setNativeProps(props) {
-    this.marker.setNativeProps(props);
-  }
+    setNativeProps(props) {
+        this.marker.setNativeProps(props);
+    }
 
-  showCallout() {
-    this._runCommand('showCallout', []);
-  }
+    showCallout() {
+        this._runCommand("showCallout", []);
+    }
 
-  hideCallout() {
-    this._runCommand('hideCallout', []);
-  }
+    hideCallout() {
+        this._runCommand("hideCallout", []);
+    }
 
-  _getHandle() {
-    return findNodeHandle(this.marker);
-  }
+    _getHandle() {
+        return findNodeHandle(this.marker);
+    }
 
-  _runCommand(name, args) {
-    switch (Platform.OS) {
-      case 'android':
-        NativeModules.UIManager.dispatchViewManagerCommand(
-          this._getHandle(),
-          this.getUIManagerCommand(name),
-          args
+    _runCommand(name, args) {
+        switch (Platform.OS) {
+            case "android":
+                NativeModules.UIManager.dispatchViewManagerCommand(
+                    this._getHandle(),
+                    this.getUIManagerCommand(name),
+                    args,
+                );
+                break;
+
+            case "ios":
+                this.getMapManagerCommand(name)(this._getHandle(), ...args);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    render() {
+        let image;
+        if (this.props.image) {
+            image = resolveAssetSource(this.props.image) || {};
+            image = image.uri;
+        }
+
+        const AIRMapMarker = this.getAirComponent();
+
+        return (
+            <AIRMapMarker
+                ref={ref => {
+                    this.marker = ref;
+                }}
+                {...this.props}
+                image={image}
+                style={[styles.marker, this.props.style]}
+            />
         );
-        break;
-
-      case 'ios':
-        this.getMapManagerCommand(name)(this._getHandle(), ...args);
-        break;
-
-      default:
-        break;
     }
-  }
-
-  render() {
-    let image;
-    if (this.props.image) {
-      image = resolveAssetSource(this.props.image) || {};
-      image = image.uri;
-    }
-
-    const AIRMapMarker = this.getAirComponent();
-
-    return (
-      <AIRMapMarker
-        ref={ref => { this.marker = ref; }}
-        {...this.props}
-        image={image}
-        style={[styles.marker, this.props.style]}
-      />
-    );
-  }
 }
 
 MapMarker.propTypes = propTypes;
@@ -296,20 +299,20 @@ MapMarker.defaultProps = defaultProps;
 MapMarker.viewConfig = viewConfig;
 
 const styles = StyleSheet.create({
-  marker: {
-    position: 'absolute',
-    backgroundColor: 'transparent',
-  },
+    marker: {
+        position: "absolute",
+        backgroundColor: "transparent",
+    },
 });
 
 MapMarker.Animated = Animated.createAnimatedComponent(MapMarker);
 
 module.exports = decorateMapComponent(MapMarker, {
-  componentType: 'Marker',
-  providers: {
-    google: {
-      ios: SUPPORTED,
-      android: USES_DEFAULT_IMPLEMENTATION,
+    componentType: "Marker",
+    providers: {
+        google: {
+            ios: SUPPORTED,
+            android: USES_DEFAULT_IMPLEMENTATION,
+        },
     },
-  },
 });

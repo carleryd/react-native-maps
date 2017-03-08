@@ -48,7 +48,9 @@ extern const CGFloat AIRMapZoomBoundBuffer;
 @property (nonatomic, assign) BOOL clusterMarkers;
 
 @property (nonatomic, copy) RCTBubblingEventBlock onChange;
+@property (nonatomic, copy) RCTBubblingEventBlock onDerp;
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
+@property (nonatomic, copy) RCTBubblingEventBlock onTopAheadMarkerChange;
 @property (nonatomic, copy) RCTBubblingEventBlock onPanDrag;
 @property (nonatomic, copy) RCTBubblingEventBlock onLongPress;
 @property (nonatomic, copy) RCTDirectEventBlock onMarkerPress;

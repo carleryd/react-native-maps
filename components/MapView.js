@@ -369,6 +369,11 @@ const propTypes = {
    * will want to setState on the marker's coordinate again
    */
     onMarkerDragEnd: PropTypes.func,
+
+    /**
+     * 
+   */
+    onTopAheadMarkerChange: PropTypes.func,
 };
 
 class MapView extends React.Component {
@@ -381,6 +386,7 @@ class MapView extends React.Component {
 
         this._onMapReady = this._onMapReady.bind(this);
         this._onChange = this._onChange.bind(this);
+        this._onDerp = this._onDerp.bind(this);
         this._onLayout = this._onLayout.bind(this);
     }
 
@@ -450,6 +456,14 @@ class MapView extends React.Component {
             }
         } else if (this.props.onRegionChangeComplete) {
             this.props.onRegionChangeComplete(event.nativeEvent.region);
+        }
+    }
+
+    _onDerp(event) {
+        if (event.nativeEvent.postId) {
+            if (this.props.onTopAheadMarkerChange) {
+                this.props.onTopAheadMarkerChange(event.nativeEvent.postId);
+            }
         }
     }
 
@@ -610,6 +624,7 @@ class MapView extends React.Component {
                 region: null,
                 initialRegion: null,
                 onChange: this._onChange,
+                onDerp: this._onDerp,
                 onMapReady: this._onMapReady,
                 onLayout: this._onLayout,
             };
@@ -627,6 +642,7 @@ class MapView extends React.Component {
                 region: null,
                 initialRegion: null,
                 onChange: this._onChange,
+                onDerp: this._onDerp,
                 onMapReady: this._onMapReady,
                 onLayout: this._onLayout,
             };
@@ -666,6 +682,7 @@ const nativeComponent = Component =>
     requireNativeComponent(Component, MapView, {
         nativeOnly: {
             onChange: true,
+            onDerp: true,
             onMapReady: true,
             handlePanDrag: true,
         },
@@ -688,6 +705,7 @@ const AIRMapLite = NativeModules.UIManager.AIRMapLite &&
     requireNativeComponent("AIRMapLite", MapView, {
         nativeOnly: {
             onChange: true,
+            onDerp: true,
             onMapReady: true,
             handlePanDrag: true,
         },

@@ -130,10 +130,13 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
  * This function is called by the MapView to cluster created markers.
  * Currently we only cluster AIRMapAheadMarkers.
  */
-- (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect withZoomScale:(double)zoomScale
+- (NSArray *)clusteredAnnotationsWithinMapRect:(MKMapRect)rect
+                                 withZoomScale:(double)zoomScale
+                                   withMapView:(MKMapView *)mapView
 {
     return [self largestFirstClusteringWithMapRect:rect
                               withAheadMarkerLimit:5
+                                       withMapView:mapView
             ];
 }
 
@@ -159,6 +162,7 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
  */
 - (NSArray *)largestFirstClusteringWithMapRect:(MKMapRect)mapRect
                           withAheadMarkerLimit:(NSInteger)aheadMarkerLimit
+                                   withMapView:(AIRMap *)mapView
 {
     [self.lock lock];
     
@@ -194,6 +198,12 @@ FBAnnotationDot* createDotAnnotationFromMarker(AIRMapAheadMarker *marker)
     }];
     
     NSArray *sortedAheadMarkers = [self sortMarkersBasedOnRadius:(NSArray *)aheadMarkers];
+    
+    if ([mapView onDerp] && [sortedAheadMarkers count] > 0) {
+        mapView.onDerp(@{
+                         @"postId": [[sortedAheadMarkers firstObject] postId],
+                         });
+    }
     
     /**
      * Beginning at head, look through list and check collision between each annotation.
