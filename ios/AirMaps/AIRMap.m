@@ -242,7 +242,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     AIRMapAheadMarker *marker = [[AIRMapAheadMarkerUtilities sharedInstance] prevPressedMarker];
     if (marker != nil) {
         [[AIRMapAheadMarkerUtilities sharedInstance] setPrevPressedMarker:nil];
-        [self triggerMarkerPressWithMarker:marker];
+        [self triggerMarkerPressWithMarker:marker shouldTriggerOnPress:YES];
         
         if (self.clusterMarkers) {
             [[self delegate] mapView:self regionDidChangeAnimated:NO];
@@ -250,7 +250,7 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     }
 }
 
-- (void)triggerMarkerPressWithMarker:(id)marker {
+- (void)triggerMarkerPressWithMarker:(id)marker shouldTriggerOnPress:(BOOL)triggerOnPress {
     AIRMapAheadMarker *aheadMarker = marker;
     [[aheadMarker getAnnotationView] setAlpha:aheadMarker.importantStatus.unimportantOpacity];
     ImportantStatus newImportantStatus = [aheadMarker importantStatus];
@@ -266,7 +266,9 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
                                     }
                             };
 
-    if (aheadMarker.onPress) aheadMarker.onPress(markerPressEvent);
+    if (aheadMarker.onPress && triggerOnPress == YES) {
+        aheadMarker.onPress(markerPressEvent);
+    }
 }
 
 // Allow touches to be sent to our calloutview.

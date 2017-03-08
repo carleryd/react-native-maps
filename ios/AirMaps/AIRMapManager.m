@@ -125,7 +125,7 @@ RCT_EXPORT_METHOD(pressTopAheadMarker:(nonnull NSNumber *)reactTag)
         } else {
             AIRMap *mapView = (AIRMap *)view;
             AIRMapAheadMarker *topMarker = [[mapView clusteringManager] getTopAheadMarkerInMapRect:[mapView visibleMapRect]];
-            [mapView triggerMarkerPressWithMarker:topMarker];
+            [mapView triggerMarkerPressWithMarker:topMarker shouldTriggerOnPress:NO];
         }
     }];
 }
