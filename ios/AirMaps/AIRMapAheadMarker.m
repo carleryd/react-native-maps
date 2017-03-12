@@ -70,6 +70,68 @@
     return [super hitTest:point withEvent:event];
 }
 
+//- (void)fetchImageFromURL:(NSURL *)url andAddAsImageOn:(UIImageView *)imageView
+//{
+//    
+//}
+//
+//- (void)downloadContentFromUrl:(NSURL *)url {
+//    NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10.0];
+//    NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+//    if (connection) {
+//        receivedData = [[NSMutableData data] retain];
+//        self.downloadProgressLabel.text = @"Downloading...";
+//    } else {
+//        // oh noes!
+//    }
+//}
+//
+//- (void) connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+//    [receivedData setLength:0];
+//}
+//
+//- (void) connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+//    [receivedData appendData:data];
+//    int kb = [receivedData length] / 1024;
+//    self.downloadProgressLabel.text = [NSString stringWithFormat:@"Downloaded\n%d kB", kb];
+//}
+
+/**
+ * 1. Create circle with default image and add as subview.
+ * 2. Start fetch of real image and when done, change default image to this image.
+ */
+- (void)setCircleSubviewOnAnnotationView:(MKAnnotationView *)anView
+                            withImageSrc:(NSString *)imageSrc
+                                withSize:(CGSize)size
+                         withBorderColor:(UIColor *)borderColor
+{
+    NSURL *url = [NSURL URLWithString:[self imageSrc]];
+    //        NSURLRequest *request = [NSURLRequest requestWithURL:[self imageSrc]];
+    //        NSURLConnection *connection [[NSURLConnection alloc] initWithRequest:request delegate:<#(nullable id)#> startImmediately:YES];
+//    UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
+    //        CGFloat width = self.bounds.size.width;
+    //        CGFloat height = self.bounds.size.height;
+    CGFloat width = size.width;
+    CGFloat height = size.height;
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-size.width/2,
+                                                                           -size.height/2,
+                                                                           size.width,
+                                                                           size.height)];
+    
+//    imageView.image = image;
+//    [fetchImageFromURL:url andAddAsImageOn:imageView];
+    imageView.tag = 7777; // Use this tag to remove subview when URL image loaded.
+    [imageView setBackgroundColor:borderColor];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    imageView.clipsToBounds = YES;
+    //        imageView.layer.cornerRadius = self.size.width / 2;
+    imageView.layer.cornerRadius = size.width / 2;
+    imageView.layer.borderWidth = imageView.layer.cornerRadius * 0.10;
+    imageView.layer.borderColor = [borderColor CGColor];
+    imageView.layer.masksToBounds = YES;
+    [anView addSubview:imageView];
+}
+
 /**
  * The map will request a view to be shown for each annotation on the map.
  * This function returns that view.
@@ -82,26 +144,11 @@
         _anView.draggable = self.draggable;
         _anView.layer.zPosition = self.zIndex;
 
-        
-        NSURL *url = [NSURL URLWithString: [self imageSrc]];
-        UIImage *image = [UIImage imageWithData: [NSData dataWithContentsOfURL:url]];
-        CGFloat width = self.bounds.size.width;
-        CGFloat height = self.bounds.size.height;
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-self.size.width/2,
-                                                                               -self.size.height/2,
-                                                                               self.size.width,
-                                                                               self.size.height)];
-        
-        imageView.image = image;
-        [imageView setBackgroundColor:[[self borderColor] representedColor]];
-        imageView.contentMode = UIViewContentModeScaleAspectFill;
-        imageView.clipsToBounds = YES;
-        imageView.layer.cornerRadius = self.size.width / 2;
-        imageView.layer.borderWidth = imageView.layer.cornerRadius * 0.10;
-        imageView.layer.borderColor = [[[self borderColor] representedColor] CGColor];
-        imageView.layer.masksToBounds = YES;
-        
-        [_anView addSubview:imageView];
+        [self setCircleSubviewOnAnnotationView:(MKAnnotationView *)_anView
+                                  withImageSrc:[self imageSrc]
+                                      withSize:self.size
+                               withBorderColor:[[self borderColor] representedColor]
+         ];
     }
     [_anView setAlpha:[self alpha]];
         
