@@ -23,6 +23,7 @@
 @implementation AIRMapAheadMarker {
     RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     MKAnnotationView *_anView;
+    NSMutableData *_receivedImageData;
 }
 
 - (id)init {
@@ -70,8 +71,13 @@
     return [super hitTest:point withEvent:event];
 }
 
-- (void)fetchImageFromURL:(NSURL *)url andAddAsImageOn:(UIImageView *)imageView
+/**
+ * This function fetches an image from an url and in its didReceiveData method the image is set on the marker.
+ */
+- (void)fetchImageFromURL:(NSURL *)url
 {
+    _receivedImageData = [[NSMutableData alloc] init];
+    NSLog(@"zzzz fetching image from URL %@", url);
     NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10.0];
     NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (!connection) {
@@ -79,10 +85,17 @@
     }
 }
 
-- (void) connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    UIImage *image = [UIImage imageWithData:data];
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [_receivedImageData appendData:data];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    UIImage *image = [UIImage imageWithData:_receivedImageData];
     UIImageView *imageView = [_anView viewWithTag:7777];
     [imageView setImage:image];
+    NSLog(@"zzzz DONE fetching image %@", image);
 }
 
 /**
@@ -93,7 +106,6 @@
                         withSize:(CGSize)size
                  withBorderColor:(UIColor *)borderColor
 {
-    NSURL *url = [NSURL URLWithString:[self imageSrc]];
     CGFloat width = size.width;
     CGFloat height = size.height;
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-size.width/2,
@@ -109,11 +121,6 @@
     imageView.layer.borderWidth = imageView.layer.cornerRadius * 0.10;
     imageView.layer.borderColor = [borderColor CGColor];
     imageView.layer.masksToBounds = YES;
-    /**
-     * OBS: This will change the image prop of imageView once the image from url has been downloaded.
-     * The function will use the imageView tag to access the correct subview of imageView.
-     */
-    [self fetchImageFromURL:url andAddAsImageOn:imageView];
     return imageView;
 }
 
@@ -134,6 +141,20 @@
                                              withBorderColor:[[self borderColor] representedColor]
                                ];
         [_anView addSubview:circle];
+        /**
+         * OBS: This will change the image prop of imageView once the image from url has been downloaded.
+         * The function will use the imageView tag to access the correct subview of imageView.
+         */
+        NSURL *url = [NSURL URLWithString:[self imageSrc]];
+        [self fetchImageFromURL:url];
+    } else {
+        UIImageView *imageView = [_anView viewWithTag:7777];
+        NSLog(@"zzzz getAnnotationView image %@", [imageView image]);
+        if ([imageView image] == NULL) {
+            NSLog(@"zzzz setting fetched image because NULL %@", [imageView image]);
+            NSURL *url = [NSURL URLWithString:[self imageSrc]];
+            [self fetchImageFromURL:url];
+        }
     }
     [_anView setAlpha:[self alpha]];
         
