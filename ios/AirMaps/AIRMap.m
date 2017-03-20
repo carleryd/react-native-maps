@@ -101,10 +101,6 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
     // Our desired API is to pass up markers/overlays as children to the mapview component.
     // This is where we intercept them and do the appropriate underlying mapview action.
     if ([subview isKindOfClass:[AIRMapMarker class]]) {
-        /**
-         * Add the annotation both to the map, and to the clustering manager.
-         * The clustering manager determines if the annotation should be clustered.
-         */
         [self.clusteringManager addAnnotations:@[(id<MKAnnotation>)subview]];
     } else if ([subview isKindOfClass:[AIRMapAheadMarker class]]) {
         [self addAnnotation:(id<MKAnnotation>)subview];
@@ -251,12 +247,20 @@ const CGFloat AIRMapZoomBoundBuffer = 0.01;
 }
 
 - (void)triggerMarkerPressWithMarker:(id)marker shouldTriggerOnPress:(BOOL)triggerOnPress {
+    /**
+     * When pressed, the marker should no longer be considered "important", i.e. high priority
+     * when clustering and no opacity.
+     */
     AIRMapAheadMarker *aheadMarker = marker;
     [[aheadMarker getAnnotationView] setAlpha:aheadMarker.importantStatus.unimportantOpacity];
     ImportantStatus newImportantStatus = [aheadMarker importantStatus];
     newImportantStatus.isImportant = NO;
     [aheadMarker setImportantStatus:newImportantStatus];
     
+    /**
+     * This sends a message through the bridge to JS and triggers the "onPress" callback
+     * on AheadMarker
+     */
     id markerPressEvent = @{
                             @"action": @"marker-press",
                             @"id": aheadMarker.identifier ?: @"unknown",

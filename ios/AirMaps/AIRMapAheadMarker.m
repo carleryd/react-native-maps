@@ -20,6 +20,13 @@
 #define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0];
 
 
+/**
+ * This was originally just a copy of AIRMapMarker, created by this library.
+ * One difference between this class and the AIRMapMarker is that this one cannot contain react subviews,
+ * i.e. nested view logic in react, so the styling is all done in Objective-C and not in React.
+ * It also has a few more props to determine its size and other logic. The radius prop for example
+ * determines the size and is also necessary for the clustering algorithm to work.
+ */
 @implementation AIRMapAheadMarker {
     RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     MKAnnotationView *_anView;
@@ -77,7 +84,6 @@
 - (void)fetchImageFromURL:(NSURL *)url
 {
     _receivedImageData = [[NSMutableData alloc] init];
-    NSLog(@"zzzz fetching image from URL %@", url);
     NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10.0];
     NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (!connection) {
@@ -95,7 +101,6 @@
     UIImage *image = [UIImage imageWithData:_receivedImageData];
     UIImageView *imageView = [_anView viewWithTag:7777];
     [imageView setImage:image];
-    NSLog(@"zzzz DONE fetching image %@", image);
 }
 
 /**
@@ -149,9 +154,7 @@
         [self fetchImageFromURL:url];
     } else {
         UIImageView *imageView = [_anView viewWithTag:7777];
-        NSLog(@"zzzz getAnnotationView image %@", [imageView image]);
         if ([imageView image] == NULL) {
-            NSLog(@"zzzz setting fetched image because NULL %@", [imageView image]);
             NSURL *url = [NSURL URLWithString:[self imageSrc]];
             [self fetchImageFromURL:url];
         }
@@ -173,6 +176,10 @@
     _radius = radius;
 }
 
+/**
+ * Whenever the importantStatus prop is changed in JS, this function is triggered where we
+ * set the correct values and then perform a re-clustering by triggering regionDidChangeAnimated
+ */
 - (void)setImportantStatus:(ImportantStatus)importantStatus
 {
     _importantStatus = importantStatus;

@@ -4,6 +4,15 @@
 #import "AIRMapAheadMarker.h"
 #import "NSString+Color.h"
 
+/**
+ * This component is used to do a bunch of different things for our marker AIRMapAheadMarker.
+ *
+ * One thing it does is keep track of which marker is currently being pressed, this is used
+ * to show the highlight when clicking a marker, and also determine when a marker should be
+ * considered pressed and trigger "onPress" to JavaScript.
+ *
+ * This component also have a few functions used for drawing the AIRMapAheadMarker.
+ */
 @implementation AIRMapAheadMarkerUtilities
 
 /**
