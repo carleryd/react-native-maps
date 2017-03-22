@@ -8,7 +8,6 @@
  */
 
 #import "AIRMapMarker.h"
-#import "AIRMapUtilities.h"
 
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
@@ -70,15 +69,6 @@
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    if (CGRectContainsPoint(self.bounds, point)) {
-        AIRMapUtilities *utilities = [AIRMapUtilities sharedInstance];
-    
-        if ([utilities prevPressedMarker] != nil) {
-            utilities.prevPressedMarker.alpha = 1.0; // TODO: Reset somehow(maybe user_has_popped is true/false)
-        }
-        
-        [utilities setPrevPressedMarker:self];
-    }
     return [super hitTest:point withEvent:event];
 }
 
@@ -88,7 +78,7 @@
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(12.f, 12.f), NO, 0.0f);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextSaveGState(ctx);
-        
+    
     CGRect rect = CGRectMake(0, 0, 12, 12);
     CGContextSetFillColorWithColor(ctx, color.CGColor);
     CGContextFillEllipseInRect(ctx, rect);
@@ -343,7 +333,6 @@
 - (void)setDotColor:(NSString *)dotColor
 {
     _dotColor = dotColor;
-//    self.dotColor = _dotColor;
 }
 
 - (void)setPinColor:(UIColor *)pinColor

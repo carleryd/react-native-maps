@@ -10,6 +10,7 @@
 #import "AIRMapMarkerManager.h"
 
 #import <React/RCTConvert+CoreLocation.h>
+#import "RCTConvert+MoreMapKit.h"
 #import <React/RCTUIManager.h>
 #import <React/UIView+React.h>
 #import "AIRMapMarker.h"
@@ -38,11 +39,18 @@ RCT_EXPORT_VIEW_PROPERTY(coordinate, CLLocationCoordinate2D)
 RCT_EXPORT_VIEW_PROPERTY(centerOffset, CGPoint)
 RCT_EXPORT_VIEW_PROPERTY(calloutOffset, CGPoint)
 RCT_REMAP_VIEW_PROPERTY(image, imageSrc, NSString)
-RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
 RCT_EXPORT_VIEW_PROPERTY(pinColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(draggable, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, NSInteger)
 RCT_EXPORT_VIEW_PROPERTY(opacity, double)
+// TODO: Do something about this, its hacky
+RCT_EXPORT_VIEW_PROPERTY(dotColor, NSString)
+/**
+ * TODO: Move to subclass AheadMarker
+ */
+RCT_EXPORT_VIEW_PROPERTY(importantStatus, ImportantStatus)
+RCT_EXPORT_VIEW_PROPERTY(radius, float)
+
 
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSelect, RCTDirectEventBlock)
@@ -51,7 +59,6 @@ RCT_EXPORT_VIEW_PROPERTY(onCalloutPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDrag, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDragEnd, RCTDirectEventBlock)
-
 
 RCT_EXPORT_METHOD(showCallout:(nonnull NSNumber *)reactTag)
 {

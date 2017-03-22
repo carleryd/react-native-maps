@@ -29,4 +29,13 @@ RCT_ARRAY_CONVERTER(AIRMapCoordinate)
     return RCTConvertArrayValue(@selector(AIRMapCoordinateArray:), json);
 }
 
++ (ImportantStatus)ImportantStatus:(id)json
+{
+    json = [self NSDictionary:json];
+    return (ImportantStatus){
+        [self BOOL:json[@"isImportant"]],
+        [self float:json[@"unimportantOpacity"]]
+    };
+}
+
 @end

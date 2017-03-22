@@ -7,22 +7,29 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "AIRMapCallout.h"
-
 #import <MapKit/MapKit.h>
 #import <UIKit/UIKit.h>
 
 #import <React/RCTConvert+MapKit.h>
 #import <React/RCTComponent.h>
 #import "AIRMap.h"
-#import "SMCalloutView.h"
 
 @class RCTBridge;
 
-@interface AIRMapMarker : MKAnnotationView <MKAnnotation>
+@interface AIRMapAheadMarker : MKAnnotationView <MKAnnotation>
 
+struct ImportantStatus {
+    BOOL isImportant;
+    float unimportantOpacity;
+};
+typedef struct ImportantStatus ImportantStatus;
 
-@property (nonatomic, strong) AIRMapCallout *calloutView;
+typedef enum {
+    FULLY_COVERED,
+    PARTIALLY_COVERED,
+    NOT_COVERED
+} MarkerCoveredState;
+
 @property (nonatomic, weak) AIRMap *map;
 @property (nonatomic, weak) RCTBridge *bridge;
 
@@ -33,31 +40,34 @@
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
 @property (nonatomic, strong) UIColor *pinColor;
 @property (nonatomic, assign) NSInteger zIndex;
-@property (nonatomic, assign) double opacity;
-// TODO: Create a special kind of AIRMapAheadDot or something
-@property (nonatomic, copy) NSString *dotColor;
+
+@property (nonatomic, assign) MarkerCoveredState coveredState;
+@property (nonatomic, assign) ImportantStatus importantStatus;
+@property (nonatomic, assign) float radius;
+@property (nonatomic, copy) NSString *postId;
+/**
+ * TODO: Is it possible to set this as UIColor directly using representedColor func?
+ */
+@property (nonatomic, copy) NSString *borderColor;
+@property (nonatomic, strong) UIColor *borderUIColor;
+@property (nonatomic, assign) CGSize size;
+
+/**
+ * An array of markers that this marker is covering.
+ */
+@property (nonatomic, strong) NSMutableArray *coveringMarkers;
 
 
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) RCTDirectEventBlock onSelect;
 @property (nonatomic, copy) RCTDirectEventBlock onDeselect;
-@property (nonatomic, copy) RCTDirectEventBlock onCalloutPress;
 @property (nonatomic, copy) RCTDirectEventBlock onDragStart;
 @property (nonatomic, copy) RCTDirectEventBlock onDrag;
 @property (nonatomic, copy) RCTDirectEventBlock onDragEnd;
 
 
 - (MKAnnotationView *)getAnnotationView;
-- (void)fillCalloutView:(SMCalloutView *)calloutView;
-- (BOOL)shouldShowCalloutView;
-- (void)showCalloutView;
-- (void)hideCalloutView;
-- (BOOL)shouldUsePinView; // TODO: Remove?
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event; // TODO: Remove?
-- (void)addTapGestureRecognizer;
+- (BOOL)shouldUsePinView;
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
-@end
-
-
-@interface AIREmptyCalloutBackgroundView : SMCalloutBackgroundView
 @end
